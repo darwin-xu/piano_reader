@@ -67,24 +67,29 @@ private struct StaffCanvas: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let vPad: CGFloat = 28
-            let staffTop: CGFloat = vPad
+            let topPad: CGFloat = 52
+            let bottomPad: CGFloat = 72
+            let staffTop: CGFloat = topPad
             // Steps 2…10 = 8 intervals occupy the staff zone
-            let stepSize: CGFloat = (h - 2 * vPad) / 8.0
+            let stepSize: CGFloat = (h - topPad - bottomPad) / 8.0
 
             ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color.white.opacity(0.72))
+                Color.white
 
                 // 5 staff lines at diatonic steps 2, 4, 6, 8, 10
                 ForEach([2, 4, 6, 8, 10], id: \.self) { step in
                     Rectangle()
-                        .fill(Color.black.opacity(0.22))
-                        .frame(height: 1.5)
-                        .padding(.horizontal, 28)
+                        .fill(Color.black.opacity(0.72))
+                        .frame(height: 1.2)
+                        .padding(.horizontal, 24)
                         .frame(maxWidth: .infinity)
                         .position(x: w / 2, y: yFor(step: step, top: staffTop, stepSize: stepSize))
                 }
+
+                Text("𝄞")
+                    .font(.system(size: 118))
+                    .foregroundStyle(Color.black.opacity(0.92))
+                    .position(x: w * 0.17, y: yFor(step: 5, top: staffTop, stepSize: stepSize))
 
                 if let note, let step = diatonicStep {
                     let noteX = w * 0.56
@@ -93,7 +98,7 @@ private struct StaffCanvas: View {
                     // Ledger line for middle C (step 0) or D4 below staff (step 1)
                     if step <= 1 {
                         Rectangle()
-                            .fill(Color.black.opacity(0.30))
+                            .fill(Color.black.opacity(0.60))
                             .frame(width: 36, height: 1.5)
                             .position(x: noteX, y: yFor(step: 0, top: staffTop, stepSize: stepSize))
                     }
@@ -101,13 +106,13 @@ private struct StaffCanvas: View {
                     // Stem (upward)
                     Rectangle()
                         .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: 2, height: stepSize * 3.5)
-                        .position(x: noteX + 11, y: noteY - stepSize * 1.75)
+                        .frame(width: 2.2, height: stepSize * 3.7)
+                        .position(x: noteX + 12, y: noteY - stepSize * 1.85)
 
                     // Note head
                     Ellipse()
                         .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: 22, height: 16)
+                        .frame(width: 28, height: 20)
                         .rotationEffect(.degrees(-10))
                         .position(x: noteX, y: noteY)
 

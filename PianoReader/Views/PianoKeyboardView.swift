@@ -10,9 +10,11 @@ struct PianoKeyboardView: View {
         GeometryReader { geometry in
             let whiteKeyWidth = geometry.size.width / CGFloat(whiteKeys.count)
             let blackKeyWidth = whiteKeyWidth * 0.62
-            let blackKeyHeight = geometry.size.height * 0.62
+            let blackKeyHeight = geometry.size.height * 0.52
 
             ZStack(alignment: .topLeading) {
+                Color(red: 0.18, green: 0.22, blue: 0.29)
+
                 HStack(spacing: 0) {
                     ForEach(whiteKeys) { note in
                         RoundedRectangle(cornerRadius: 5, style: .continuous)
@@ -22,20 +24,31 @@ struct PianoKeyboardView: View {
                                     .stroke(Color.black.opacity(0.22), lineWidth: 1)
                             )
                             .frame(width: whiteKeyWidth)
+                            .overlay(alignment: .bottom) {
+                                Rectangle()
+                                    .fill(Color.black.opacity(0.10))
+                                    .frame(height: 14)
+                            }
                     }
                 }
+                .padding(.top, 22)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 16)
 
                 ForEach(blackKeys) { note in
-                    let offset = CGFloat(KeyboardLayout.visibleWhiteKeyOffset(for: note.midiNumber)) * whiteKeyWidth - (blackKeyWidth / 2)
+                    let offset = CGFloat(KeyboardLayout.visibleWhiteKeyOffset(for: note.midiNumber)) * whiteKeyWidth - (blackKeyWidth / 2) + 8
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .fill(fillColor(for: note, defaultColor: Color.black.opacity(0.84)))
                         .frame(width: blackKeyWidth, height: blackKeyHeight)
-                        .offset(x: offset)
+                        .overlay(alignment: .bottom) {
+                            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                .fill(Color.white.opacity(0.08))
+                                .frame(height: 10)
+                        }
+                        .offset(x: offset, y: 22)
                 }
             }
-            .padding(.vertical, 8)
         }
-        .padding(.horizontal, 8)
     }
 
     private func fillColor(for note: PianoNote, defaultColor: Color) -> Color {
@@ -44,7 +57,7 @@ struct PianoKeyboardView: View {
         }
 
         return note.isBlackKey
-            ? Color(red: 0.93, green: 0.64, blue: 0.21)
-            : Color(red: 0.95, green: 0.75, blue: 0.32)
+            ? Color(red: 0.16, green: 0.41, blue: 0.95)
+            : Color(red: 0.15, green: 0.44, blue: 0.98)
     }
 }
