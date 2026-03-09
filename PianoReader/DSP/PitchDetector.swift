@@ -7,7 +7,7 @@ struct PitchDetector {
     // MARK: - Configuration
     private let noiseFloor: Float = 0.006          // RMS gate; piano at normal distance needs ~0.006
     private let minimumFrequency: Double = 245.0   // single visible scale: around B3/C4 lower bound
-    private let maximumFrequency: Double = 530.0   // single visible scale: around C5 upper bound
+    private let maximumFrequency: Double = 700.0   // allow upper staff notes like D5 while avoiding higher-octave false matches
     private let yinThreshold: Float = 0.10         // lower = stricter; 0.10 is good for piano
     private let windowSize = 8_192                 // must be power-of-2 for FFT
 

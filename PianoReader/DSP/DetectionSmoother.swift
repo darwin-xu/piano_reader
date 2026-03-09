@@ -5,9 +5,12 @@ struct DetectionSmoother {
     private let historyLimit = 5
     private let minimumConfidence = 0.30     // match detector gate (was 0.56)
     private let octaveJumpConfidenceBonus = 0.18
+    private let octaveJumpConfirmationCount = 2
 
     private var history: [DetectionResult] = []
     private var activeResult: DetectionResult?
+    private var pendingOctaveCandidate: DetectionResult?
+    private var pendingOctaveCount = 0
 
     mutating func push(_ result: DetectionResult?) -> DetectionResult? {
         guard let result, result.confidence >= minimumConfidence else {
@@ -29,8 +32,10 @@ struct DetectionSmoother {
         return activeResult
     }
 
-    private func suppressOctaveJumpIfNeeded(_ result: DetectionResult) -> DetectionResult {
+    private mutating func suppressOctaveJumpIfNeeded(_ result: DetectionResult) -> DetectionResult {
         guard let activeResult else {
+            pendingOctaveCandidate = nil
+            pendingOctaveCount = 0
             return result
         }
 
@@ -40,9 +45,24 @@ struct DetectionSmoother {
         let confidenceImprovedEnough = result.confidence >= activeResult.confidence + octaveJumpConfidenceBonus
 
         guard samePitchClass, isOctaveJump, !confidenceImprovedEnough else {
+            pendingOctaveCandidate = nil
+            pendingOctaveCount = 0
             return result
         }
 
-        return DetectionResult(note: activeResult.note, confidence: result.confidence, amplitude: result.amplitude)
+        if pendingOctaveCandidate?.note.midiNumber == result.note.midiNumber {
+            pendingOctaveCount += 1
+        } else {
+            pendingOctaveCandidate = result
+            pendingOctaveCount = 1
+        }
+
+        guard pendingOctaveCount >= octaveJumpConfirmationCount else {
+            return DetectionResult(note: activeResult.note, confidence: result.confidence, amplitude: result.amplitude)
+        }
+
+        pendingOctaveCandidate = nil
+        pendingOctaveCount = 0
+        return result
     }
 }
