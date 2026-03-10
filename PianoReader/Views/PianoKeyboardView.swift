@@ -13,12 +13,19 @@ struct PianoKeyboardView: View {
             let blackKeyHeight = geometry.size.height * 0.52
 
             ZStack(alignment: .topLeading) {
-                Color(red: 0.18, green: 0.22, blue: 0.29)
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.20, green: 0.24, blue: 0.31),
+                        Color(red: 0.10, green: 0.13, blue: 0.19)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
 
                 HStack(spacing: 0) {
                     ForEach(whiteKeys) { note in
                         RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .fill(fillColor(for: note, defaultColor: .white))
+                            .fill(fillColor(for: note, defaultColor: Color.white.opacity(0.98)))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                                     .stroke(Color.black.opacity(0.22), lineWidth: 1)
@@ -48,7 +55,11 @@ struct PianoKeyboardView: View {
                         .offset(x: offset, y: 22)
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .shadow(color: Color.black.opacity(0.14), radius: 12, y: 6)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
     }
 
     private func fillColor(for note: PianoNote, defaultColor: Color) -> Color {

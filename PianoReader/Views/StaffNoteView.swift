@@ -72,6 +72,9 @@ private struct StaffCanvas: View {
             let staffTop: CGFloat = topPad
             // Steps 2…10 = 8 intervals occupy the staff zone
             let stepSize: CGFloat = (h - topPad - bottomPad) / 8.0
+            let lineGap: CGFloat = stepSize * 2
+            let noteHeadHeight: CGFloat = lineGap
+            let noteHeadWidth: CGFloat = lineGap * 1.35
 
             ZStack {
                 Color.white
@@ -87,9 +90,9 @@ private struct StaffCanvas: View {
                 }
 
                 Text("𝄞")
-                    .font(.system(size: 118))
+                    .font(.system(size: h * 0.95))
                     .foregroundStyle(Color.black.opacity(0.92))
-                    .position(x: w * 0.17, y: yFor(step: 5, top: staffTop, stepSize: stepSize))
+                    .position(x: w * 0.17, y: h * 0.52)
 
                 if let note, let step = diatonicStep {
                     let noteX = w * 0.56
@@ -106,13 +109,13 @@ private struct StaffCanvas: View {
                     // Stem (upward)
                     Rectangle()
                         .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: 2.2, height: stepSize * 3.7)
-                        .position(x: noteX + 12, y: noteY - stepSize * 1.85)
+                        .frame(width: 2.2, height: lineGap * 2.2)
+                        .position(x: noteX + (noteHeadWidth * 0.43), y: noteY - lineGap * 1.1)
 
                     // Note head
                     Ellipse()
                         .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: 28, height: 20)
+                        .frame(width: noteHeadWidth, height: noteHeadHeight)
                         .rotationEffect(.degrees(-10))
                         .position(x: noteX, y: noteY)
 
