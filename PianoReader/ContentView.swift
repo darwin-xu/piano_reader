@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel: RecognitionViewModel
+    @State private var heroPhase: CGFloat = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -49,6 +50,7 @@ struct ContentView: View {
             Text(viewModel.detectedNote?.displayName ?? "--")
                 .font(.system(size: 84, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
                 .lineLimit(1)
 
             Text(viewModel.frequencyText)
@@ -63,6 +65,7 @@ struct ContentView: View {
         .frame(height: 175)
         .background(
             ZStack {
+                // Base rich gradient
                 LinearGradient(
                     colors: [
                         Color(red: 0.21, green: 0.28, blue: 0.39),
@@ -73,6 +76,77 @@ struct ContentView: View {
                     endPoint: .bottomTrailing
                 )
 
+                // Drifting ambient glow
+                RadialGradient(
+                    colors: [
+                        Color(red: 0.28, green: 0.40, blue: 0.62).opacity(0.35),
+                        Color.clear
+                    ],
+                    center: UnitPoint(
+                        x: 0.25 + heroPhase * 0.3,
+                        y: 0.3 + heroPhase * 0.2
+                    ),
+                    startRadius: 30,
+                    endRadius: 180
+                )
+
+                // Counter-phase ambient glow
+                RadialGradient(
+                    colors: [
+                        Color(red: 0.18, green: 0.25, blue: 0.48).opacity(0.25),
+                        Color.clear
+                    ],
+                    center: UnitPoint(
+                        x: 0.75 - heroPhase * 0.25,
+                        y: 0.7 - heroPhase * 0.15
+                    ),
+                    startRadius: 20,
+                    endRadius: 160
+                )
+
+                // Fine grain texture
+                Canvas { context, size in
+                    for x in stride(from: 0, through: size.width, by: 4) {
+                        for y in stride(from: 0, through: size.height, by: 4) {
+                            let seed = (Int(x) * 73 + Int(y) * 127) % 1000
+                            let hash = abs(seed) % 100
+                            if hash < 30 {
+                                let alpha = Double(hash) / 3000.0
+                                context.fill(
+                                    Path(CGRect(x: x, y: y, width: 1.5, height: 1.5)),
+                                    with: .color(.white.opacity(alpha))
+                                )
+                            }
+                        }
+                    }
+                }
+                .blendMode(.overlay)
+                .allowsHitTesting(false)
+
+                // Shimmer sweep
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    .clear,
+                                    .white.opacity(0.03),
+                                    .white.opacity(0.08),
+                                    .white.opacity(0.03),
+                                    .clear
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 100)
+                        .rotationEffect(.degrees(25))
+                        .offset(x: -150 + heroPhase * (geo.size.width + 300))
+                }
+                .clipped()
+                .allowsHitTesting(false)
+
+                // Top-leading highlight
                 LinearGradient(
                     colors: [
                         Color.white.opacity(0.10),
@@ -91,6 +165,11 @@ struct ContentView: View {
                 endPoint: .bottom
             )
             .frame(height: 40)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+                heroPhase = 1
+            }
         }
     }
 
