@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PianoKeyboardView: View {
-    let activeMIDINote: Int?
+    let activeMIDINotes: Set<Int>
 
     private let whiteKeys = KeyboardLayout.visibleWhiteKeys
     private let blackKeys = KeyboardLayout.visibleBlackKeys
@@ -63,7 +63,7 @@ struct PianoKeyboardView: View {
     }
 
     private func fillColor(for note: PianoNote, defaultColor: Color) -> Color {
-        guard activeMIDINote == note.midiNumber else {
+        guard activeMIDINotes.contains(note.midiNumber) else {
             return defaultColor
         }
 

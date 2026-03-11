@@ -9,9 +9,9 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 statusBar
                 heroBanner
-                StaffNoteView(note: viewModel.detectedNote)
+                StaffNoteView(notes: viewModel.detectedNotes)
                     .frame(height: geometry.size.height * 0.35)
-                PianoKeyboardView(activeMIDINote: viewModel.activeMIDINote)
+                PianoKeyboardView(activeMIDINotes: viewModel.activeMIDINotes)
                     .frame(height: geometry.size.height * 0.24)
                 controlsPanel
             }
@@ -47,11 +47,20 @@ struct ContentView: View {
 
     private var heroBanner: some View {
         VStack(spacing: 6) {
-            Text(viewModel.detectedNote?.displayName ?? "--")
-                .font(.system(size: 84, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
-                .lineLimit(1)
+            if viewModel.detectedNotes.count <= 1 {
+                Text(viewModel.detectedNote?.displayName ?? "--")
+                    .font(.system(size: 84, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+                    .lineLimit(1)
+            } else {
+                Text(viewModel.detectedNotes.map(\.displayName).joined(separator: " · "))
+                    .font(.system(size: max(28, 72 / CGFloat(viewModel.detectedNotes.count)), weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
 
             Text(viewModel.frequencyText)
                 .font(.system(size: 20, weight: .medium, design: .rounded))

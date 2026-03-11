@@ -15,7 +15,7 @@ import SwiftUI
 // Staff lines are at steps 2, 4, 6, 8, 10. Each step is one diatonic position.
 
 struct StaffNoteView: View {
-    let note: PianoNote?
+    let notes: [PianoNote]
 
     // Chromatic pitch class (0–11) → diatonic step within one octave (0–6).
     // Accidentals share the same step as their natural.
@@ -41,23 +41,18 @@ struct StaffNoteView: View {
         return octaves * 7 + Self.pitchClassStep[pitchClass]
     }
 
-    // Y position on screen: step 10 (F5) is near top, step 0 (C4) is near bottom (below staff).
-    private func staffY(step: Int, top: CGFloat, stepSize: CGFloat) -> CGFloat {
-        top + CGFloat(10 - step) * stepSize
-    }
-
     var body: some View {
         GeometryReader { geo in
-            StaffCanvas(note: note,
-                        diatonicStep: note.map { diatonicStep(for: $0.midiNumber) })
+            let pairs = notes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
+            StaffCanvas(notes: notes, diatonicSteps: pairs.map(\.step))
         }
     }
 }
 
 /// Pure-draw helper so all geometry calculations happen outside @ViewBuilder.
 private struct StaffCanvas: View {
-    let note: PianoNote?
-    let diatonicStep: Int?
+    let notes: [PianoNote]
+    let diatonicSteps: [Int]
 
     private func yFor(step: Int, top: CGFloat, stepSize: CGFloat) -> CGFloat {
         top + CGFloat(10 - step) * stepSize
@@ -75,6 +70,7 @@ private struct StaffCanvas: View {
             let lineGap: CGFloat = stepSize * 2
             let noteHeadHeight: CGFloat = lineGap
             let noteHeadWidth: CGFloat = lineGap * 1.35
+            let noteCount = notes.count
 
             ZStack {
                 Color.white
@@ -89,41 +85,52 @@ private struct StaffCanvas: View {
                         .position(x: w / 2, y: yFor(step: step, top: staffTop, stepSize: stepSize))
                 }
 
+                    let clefHeight: CGFloat = h * 1.03
+                let clefX: CGFloat = w * 0.15
+                let clefY: CGFloat = yFor(step: 4, top: staffTop, stepSize: stepSize) - lineGap
+
                 Text("𝄞")
-                    .font(.system(size: h * 0.95))
+                    .font(.system(size: clefHeight))
                     .foregroundStyle(Color.black.opacity(0.92))
-                    .position(x: w * 0.17, y: h * 0.52)
+                    .position(x: clefX, y: clefY)
 
-                if let note, let step = diatonicStep {
-                    let noteX = w * 0.56
-                    let noteY = yFor(step: step, top: staffTop, stepSize: stepSize)
+                if noteCount > 0 {
+                    // Spread multiple note heads horizontally when there are many
+                    let baseX: CGFloat = noteCount == 1 ? w * 0.56 : w * 0.42
+                    let spacing: CGFloat = noteCount > 1 ? min(noteHeadWidth * 1.8, (w * 0.45) / CGFloat(noteCount)) : 0
 
-                    // Ledger line for middle C (step 0) or D4 below staff (step 1)
-                    if step <= 1 {
+                    ForEach(Array(zip(notes, diatonicSteps).enumerated()), id: \.offset) { idx, pair in
+                        let step = pair.1
+                        let noteX = baseX + CGFloat(idx) * spacing
+                        let noteY = yFor(step: step, top: staffTop, stepSize: stepSize)
+
+                        // Ledger line for C4 or below
+                        if step <= 1 {
+                            Rectangle()
+                                .fill(Color.black.opacity(0.60))
+                                .frame(width: 36, height: 1.5)
+                                .position(x: noteX, y: yFor(step: 0, top: staffTop, stepSize: stepSize))
+                        }
+
+                        // Stem
                         Rectangle()
-                            .fill(Color.black.opacity(0.60))
-                            .frame(width: 36, height: 1.5)
-                            .position(x: noteX, y: yFor(step: 0, top: staffTop, stepSize: stepSize))
+                            .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
+                            .frame(width: 2.2, height: lineGap * 2.2)
+                            .position(x: noteX + (noteHeadWidth * 0.43), y: noteY - lineGap * 1.1)
+
+                        // Note head
+                        Ellipse()
+                            .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
+                            .frame(width: noteHeadWidth, height: noteHeadHeight)
+                            .rotationEffect(.degrees(-10))
+                            .position(x: noteX, y: noteY)
                     }
 
-                    // Stem (upward)
-                    Rectangle()
-                        .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: 2.2, height: lineGap * 2.2)
-                        .position(x: noteX + (noteHeadWidth * 0.43), y: noteY - lineGap * 1.1)
-
-                    // Note head
-                    Ellipse()
-                        .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                        .frame(width: noteHeadWidth, height: noteHeadHeight)
-                        .rotationEffect(.degrees(-10))
-                        .position(x: noteX, y: noteY)
-
-                    // Note label (top-left)
-                    Text(note.displayName)
+                    // Note labels (top-left)
+                    Text(notes.map(\.displayName).joined(separator: " · "))
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.secondary)
-                        .position(x: w * 0.16, y: 24)
+                        .position(x: w * 0.3, y: 24)
                 } else {
                     Text("Current note on staff")
                         .font(.headline)

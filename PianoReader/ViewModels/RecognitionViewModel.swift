@@ -3,7 +3,7 @@ import Foundation
 
 @MainActor
 final class RecognitionViewModel: ObservableObject {
-    @Published private(set) var detectedNote: PianoNote?
+    @Published private(set) var detectedNotes: [PianoNote] = []
     @Published private(set) var centsOffset: Double = 0
     @Published private(set) var confidence: Double = 0
     @Published private(set) var frequency: Double = 0
@@ -11,9 +11,16 @@ final class RecognitionViewModel: ObservableObject {
     @Published private(set) var permission: AVAudioApplication.recordPermission = AVAudioApplication.shared.recordPermission
     @Published private(set) var isListening = false
 
+    /// Primary (highest-confidence) note for hero display.
+    var detectedNote: PianoNote? { detectedNotes.first }
+
     static var preview: RecognitionViewModel {
         let viewModel = RecognitionViewModel(previewMode: true)
-        viewModel.detectedNote = PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: -6.2)
+        viewModel.detectedNotes = [
+            PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: -6.2),
+            PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 2.1),
+            PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: -1.0),
+        ]
         viewModel.centsOffset = -6.2
         viewModel.confidence = 0.84
         viewModel.frequency = 261.63
@@ -23,8 +30,8 @@ final class RecognitionViewModel: ObservableObject {
     }
 
     private let audioManager: AudioCaptureManager
-    private let pitchDetector = PitchDetector()
-    private var smoother = DetectionSmoother()
+    private let polyDetector = PolyphonicDetector()
+    private var polySmoother = PolyphonicSmoother()
     private let previewMode: Bool
     // Ring buffer: accumulate tap chunks so the detector always gets >= 8192 samples.
     private var sampleBuffer: [Float] = []
@@ -47,8 +54,8 @@ final class RecognitionViewModel: ObservableObject {
             // Only analyse once we have enough data
             guard self.sampleBuffer.count >= 8_192 else { return }
 
-            let candidate = self.pitchDetector.analyze(samples: self.sampleBuffer, sampleRate: sampleRate)
-            let smoothed = self.smoother.push(candidate)
+            let candidates = self.polyDetector.analyze(samples: self.sampleBuffer, sampleRate: sampleRate)
+            let smoothed = self.polySmoother.push(candidates)
 
             Task { @MainActor in
                 self.apply(smoothed)
@@ -56,8 +63,8 @@ final class RecognitionViewModel: ObservableObject {
         }
     }
 
-    var activeMIDINote: Int? {
-        detectedNote?.midiNumber
+    var activeMIDINotes: Set<Int> {
+        Set(detectedNotes.map(\.midiNumber))
     }
 
     var canStartListening: Bool {
@@ -90,18 +97,16 @@ final class RecognitionViewModel: ObservableObject {
     }
 
     var feedbackText: String {
-        guard let detectedNote else {
-            return "Play one piano key at a time in a quiet room for the most stable reading."
+        guard !detectedNotes.isEmpty else {
+            return "Play piano keys in a quiet room for the most stable reading."
         }
-
-        let cents = centsOffset
-        if abs(cents) < 6 {
-            return "\(detectedNote.displayName) is centered."
+        let names = detectedNotes.map(\.displayName).joined(separator: ", ")
+        if detectedNotes.count == 1 {
+            let cents = centsOffset
+            if abs(cents) < 6 { return "\(names) is centered." }
+            return cents > 0 ? "\(names) is slightly sharp." : "\(names) is slightly flat."
         }
-        if cents > 0 {
-            return "\(detectedNote.displayName) is slightly sharp."
-        }
-        return "\(detectedNote.displayName) is slightly flat."
+        return "\(detectedNotes.count) notes: \(names)"
     }
 
     func prepareAudio() async {
@@ -144,10 +149,11 @@ final class RecognitionViewModel: ObservableObject {
         }
     }
 
-    private func apply(_ result: DetectionResult?) {
-        detectedNote = result?.note
-        centsOffset = result?.note.centsOffset ?? 0
-        confidence = result?.confidence ?? 0
-        frequency = result?.note.frequency ?? 0
+    private func apply(_ results: [DetectionResult]) {
+        detectedNotes = results.map(\.note)
+        let primary = results.max(by: { $0.confidence < $1.confidence })
+        centsOffset = primary?.note.centsOffset ?? 0
+        confidence = primary?.confidence ?? 0
+        frequency = primary?.note.frequency ?? 0
     }
 }
