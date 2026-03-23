@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreGraphics
 import Foundation
 
 @MainActor
@@ -7,6 +8,7 @@ final class RecognitionViewModel: ObservableObject {
     @Published private(set) var centsOffset: Double = 0
     @Published private(set) var confidence: Double = 0
     @Published private(set) var frequency: Double = 0
+    @Published private(set) var waveformEnvelope: Array<CGFloat> = Array(repeating: 0, count: 40)
     @Published private(set) var statusMessage = "Requesting microphone access."
     @Published private(set) var permission: AVAudioApplication.recordPermission = AVAudioApplication.shared.recordPermission
     @Published private(set) var isListening = false
@@ -24,6 +26,7 @@ final class RecognitionViewModel: ObservableObject {
         viewModel.centsOffset = -6.2
         viewModel.confidence = 0.84
         viewModel.frequency = 261.63
+        viewModel.waveformEnvelope = [0.08, 0.14, 0.20, 0.34, 0.56, 0.74, 0.88, 0.80, 0.64, 0.42, 0.24, 0.16, 0.20, 0.30, 0.46, 0.66, 0.82, 0.72, 0.52, 0.30, 0.14, 0.10, 0.16, 0.28, 0.44, 0.62, 0.78, 0.70, 0.50, 0.28, 0.16, 0.10, 0.12, 0.18, 0.30, 0.48, 0.62, 0.50, 0.26, 0.12]
         viewModel.statusMessage = "Previewing the learner UI."
         viewModel.permission = .granted
         return viewModel
@@ -36,6 +39,7 @@ final class RecognitionViewModel: ObservableObject {
     // Ring buffer: accumulate tap chunks so the detector always gets >= 8192 samples.
     private var sampleBuffer: [Float] = []
     private let sampleBufferCapacity = 16_384   // keep last ~0.37 s at 44.1 kHz
+    private let waveformBinCount = 40
 
     init(audioManager: AudioCaptureManager = AudioCaptureManager(), previewMode: Bool = false) {
         self.audioManager = audioManager
@@ -49,6 +53,11 @@ final class RecognitionViewModel: ObservableObject {
             self.sampleBuffer.append(contentsOf: samples)
             if self.sampleBuffer.count > self.sampleBufferCapacity {
                 self.sampleBuffer.removeFirst(self.sampleBuffer.count - self.sampleBufferCapacity)
+            }
+
+            let envelope = self.makeWaveformEnvelope(from: self.sampleBuffer)
+            Task { @MainActor in
+                self.waveformEnvelope = envelope
             }
 
             // Only analyse once we have enough data
@@ -90,6 +99,20 @@ final class RecognitionViewModel: ObservableObject {
 
     var frequencyText: String {
         frequency > 0 ? String(format: "%.1f Hz", frequency) : "Waiting"
+    }
+
+    var waveformDetailText: String {
+        if frequency > 0 {
+            return String(format: "%.1f Hz", frequency)
+        }
+        return isListening ? "Listening" : "Tap to start"
+    }
+
+    var waveformNoteLabel: String {
+        guard !detectedNotes.isEmpty else {
+            return isListening ? "Listening for notes" : "Mic idle"
+        }
+        return detectedNotes.map(\.displayName).joined(separator: " · ")
     }
 
     var confidenceText: String {
@@ -135,6 +158,7 @@ final class RecognitionViewModel: ObservableObject {
         if isListening {
             audioManager.stop()
             isListening = false
+            waveformEnvelope = Array(repeating: 0, count: waveformBinCount)
             statusMessage = "Listening stopped."
             return
         }
@@ -155,5 +179,47 @@ final class RecognitionViewModel: ObservableObject {
         centsOffset = primary?.note.centsOffset ?? 0
         confidence = primary?.confidence ?? 0
         frequency = primary?.note.frequency ?? 0
+    }
+
+    private func makeWaveformEnvelope(from samples: [Float]) -> [CGFloat] {
+        guard !samples.isEmpty else {
+            return Array(repeating: 0, count: waveformBinCount)
+        }
+
+        let recentCount = min(samples.count, 6_144)
+        let recent = Array(samples.suffix(recentCount))
+        let maxPeak = recent.reduce(Float.zero) { max($0, abs($1)) }
+        if maxPeak < 0.01 {
+            return Array(repeating: 0, count: waveformBinCount)
+        }
+        let chunkSize = max(recent.count / waveformBinCount, 1)
+        var envelope: [CGFloat] = []
+        envelope.reserveCapacity(waveformBinCount)
+
+        var index = 0
+        while index < recent.count {
+            let end = min(index + chunkSize, recent.count)
+            let slice = recent[index..<end]
+            var peak: Float = 0
+            for sample in slice {
+                peak = max(peak, abs(sample))
+            }
+
+            let normalized = min(CGFloat(peak) * 2.6, 1.0)
+            envelope.append(normalized)
+            index = end
+        }
+
+        if envelope.count < waveformBinCount {
+            envelope.insert(contentsOf: Array(repeating: 0, count: waveformBinCount - envelope.count), at: 0)
+        } else if envelope.count > waveformBinCount {
+            envelope = Array(envelope.suffix(waveformBinCount))
+        }
+
+        let previous = waveformEnvelope
+        return envelope.enumerated().map { offset, value in
+            let prior = previous.indices.contains(offset) ? previous[offset] : value
+            return (prior * 0.45) + (value * 0.55)
+        }
     }
 }
