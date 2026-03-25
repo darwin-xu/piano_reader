@@ -18,6 +18,7 @@
 		A100000C0000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100001C0000000000000001 /* Assets.xcassets */; };
 		A100000D0000000000000001 /* PolyphonicDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E0000000000000001 /* PolyphonicDetector.swift */; };
 		A100000E0000000000000001 /* PolyphonicSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001F0000000000000001 /* PolyphonicSmoother.swift */; };
+		D65A35912F712DC60077F962 /* Bravura.otf in Resources */ = {isa = PBXBuildFile; fileRef = D65A35902F712DC60077F962 /* Bravura.otf */; };
 		D65A358B2F712DC60077F962 /* WaveformEnvelopeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A358A2F712DC60077F962 /* WaveformEnvelopeView.swift */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +36,7 @@
 		A100001D0000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A100001E0000000000000001 /* PolyphonicDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyphonicDetector.swift; sourceTree = "<group>"; };
 		A100001F0000000000000001 /* PolyphonicSmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyphonicSmoother.swift; sourceTree = "<group>"; };
+		D65A35902F712DC60077F962 /* Bravura.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Bravura.otf; sourceTree = "<group>"; };
 		D65A358A2F712DC60077F962 /* WaveformEnvelopeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformEnvelopeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -64,6 +66,7 @@
 				A10000120000000000000001 /* ContentView.swift */,
 				A10000330000000000000001 /* Audio */,
 				A10000340000000000000001 /* DSP */,
+				D65A35922F712DC60077F962 /* Fonts */,
 				A10000350000000000000001 /* Models */,
 				A10000360000000000000001 /* ViewModels */,
 				A10000370000000000000001 /* Views */,
@@ -96,6 +99,14 @@
 				A100001F0000000000000001 /* PolyphonicSmoother.swift */,
 			);
 			path = DSP;
+			sourceTree = "<group>";
+		};
+		D65A35922F712DC60077F962 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				D65A35902F712DC60077F962 /* Bravura.otf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		A10000350000000000000001 /* Models */ = {
@@ -184,6 +195,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A100000C0000000000000001 /* Assets.xcassets in Resources */,
+				D65A35912F712DC60077F962 /* Bravura.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

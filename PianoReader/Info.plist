@@ -22,6 +22,10 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Piano Reader listens for piano notes to show which key you played.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Bravura.otf</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

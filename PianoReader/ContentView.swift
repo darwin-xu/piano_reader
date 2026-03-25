@@ -2,8 +2,11 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel: RecognitionViewModel
-    // TODO: here controls what style is for waveform
-    private let waveformStyle: WaveformEnvelopeView.Style = .layeredRibbons
+    // TODO: style to choose from
+    // .layeredRibbons
+    // .envelopeBars
+    // .neonThreads
+    private let waveformStyle: WaveformEnvelopeView.Style = .neonThreads
 
     var body: some View {
         GeometryReader { geometry in

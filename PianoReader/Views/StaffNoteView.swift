@@ -1,24 +1,15 @@
 import SwiftUI
 
-// Treble clef staff reference (diatonic steps from C4 = step 0):
-//   Step 0  = C4  (ledger line below staff)
-//   Step 1  = D4  (space below bottom line)
-//   Step 2  = E4  (bottom line,    line 1)
-//   Step 3  = F4  (1st space)
-//   Step 4  = G4  (2nd line)
-//   Step 5  = A4  (2nd space)
-//   Step 6  = B4  (3rd / middle line)
-//   Step 7  = C5  (3rd space)
-//   Step 8  = D5  (4th line)
-//   Step 9  = E5  (4th space)
-//   Step 10 = F5  (top line,       line 5)
-// Staff lines are at steps 2, 4, 6, 8, 10. Each step is one diatonic position.
+// Grand staff reference using diatonic steps relative to middle C (C4 = step 0).
+// Treble lines:  E4 G4 B4 D5 F5  -> steps 2, 4, 6, 8, 10
+// Bass lines:    G2 B2 D3 F3 A3  -> steps -10, -8, -6, -4, -2
+// Middle C sits between the staves on ledger line step 0.
 
 struct StaffNoteView: View {
     let notes: [PianoNote]
 
-    // Chromatic pitch class (0–11) → diatonic step within one octave (0–6).
-    // Accidentals share the same step as their natural.
+    // Chromatic pitch class (0-11) to diatonic step within one octave.
+    // Accidentals share the same diatonic position as their natural note.
     private static let pitchClassStep: [Int] = [
         0,  // C
         0,  // C#
@@ -35,108 +26,197 @@ struct StaffNoteView: View {
     ]
 
     private func diatonicStep(for midiNumber: Int) -> Int {
-        let delta     = midiNumber - 60
-        let octaves   = delta >= 0 ? delta / 12 : (delta - 11) / 12
+        let delta = midiNumber - 60
+        let octaves = delta >= 0 ? delta / 12 : (delta - 11) / 12
         let pitchClass = ((delta % 12) + 12) % 12
         return octaves * 7 + Self.pitchClassStep[pitchClass]
     }
 
     var body: some View {
-        GeometryReader { geo in
-            let pairs = notes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
-            StaffCanvas(notes: notes, diatonicSteps: pairs.map(\.step))
-        }
+        let pairs = notes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
+        StaffCanvas(notes: notes, diatonicSteps: pairs.map(\.step))
     }
 }
 
-/// Pure-draw helper so all geometry calculations happen outside @ViewBuilder.
 private struct StaffCanvas: View {
     let notes: [PianoNote]
     let diatonicSteps: [Int]
 
+    private let trebleLineSteps = [2, 4, 6, 8, 10]
+    private let bassLineSteps = [-10, -8, -6, -4, -2]
+
     private func yFor(step: Int, top: CGFloat, stepSize: CGFloat) -> CGFloat {
-        top + CGFloat(10 - step) * stepSize
+        top + CGFloat(12 - step) * stepSize
+    }
+
+    private func ledgerSteps(for step: Int) -> [Int] {
+        if step == 0 {
+            return [0]
+        }
+
+        if step > 10 {
+            let highestLine = step.isMultiple(of: 2) ? step : step - 1
+            return Array(stride(from: 12, through: highestLine, by: 2))
+        }
+
+        if step < -10 {
+            let lowestLine = step.isMultiple(of: 2) ? step : step + 1
+            return Array(stride(from: -12, through: lowestLine, by: -2))
+        }
+
+        return []
+    }
+
+    private func stemDirection(for step: Int) -> CGFloat {
+        step >= 0 ? -1 : 1
     }
 
     var body: some View {
         GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let topPad: CGFloat = 52
-            let bottomPad: CGFloat = 72
-            let staffTop: CGFloat = topPad
-            // Steps 2…10 = 8 intervals occupy the staff zone
-            let stepSize: CGFloat = (h - topPad - bottomPad) / 8.0
-            let lineGap: CGFloat = stepSize * 2
-            let noteHeadHeight: CGFloat = lineGap
-            let noteHeadWidth: CGFloat = lineGap * 1.35
+            let width = geo.size.width
+            let height = geo.size.height
+            let topPad: CGFloat = 34
+            let bottomPad: CGFloat = 34
+            let usableHeight = max(height - topPad - bottomPad, 120)
+            let stepSize = usableHeight / 24
+            let lineGap = stepSize * 2
+            let noteHeadHeight = lineGap * 0.96
+            let noteHeadWidth = lineGap * 1.35
             let noteCount = notes.count
+            let labelY: CGFloat = 22
+            let smuflBrace = String(UnicodeScalar(0xE000)!)
+            let trebleTopY = yFor(step: 10, top: topPad, stepSize: stepSize)
+            let bassBottomY = yFor(step: -10, top: topPad, stepSize: stepSize)
+            let braceCenterY = (trebleTopY + bassBottomY) / 2
+            let braceSpan = bassBottomY - trebleTopY
+            let braceBaseSize = lineGap * 10
+            let braceVerticalScale = max(braceSpan / (braceBaseSize * 1.45), 1)
+            let barLineX = width * 0.10
+            let braceX = width * 0.07
+            let staffStartX = barLineX + 6
+            let _ = Self.logBraceMetrics(
+                braceCenterY: braceCenterY,
+                trebleTopY: trebleTopY,
+                bassBottomY: bassBottomY,
+                height: height,
+                topPad: topPad,
+                bottomPad: bottomPad,
+                stepSize: stepSize
+            )
 
             ZStack {
                 Color.white
 
-                // 5 staff lines at diatonic steps 2, 4, 6, 8, 10
-                ForEach([2, 4, 6, 8, 10], id: \.self) { step in
-                    Rectangle()
-                        .fill(Color.black.opacity(0.72))
-                        .frame(height: 1.2)
-                        .padding(.horizontal, 24)
-                        .frame(maxWidth: .infinity)
-                        .position(x: w / 2, y: yFor(step: step, top: staffTop, stepSize: stepSize))
+                Text(smuflBrace)
+                    .font(.custom("Bravura", size: braceBaseSize))
+                    .foregroundStyle(Color.black.opacity(0.88))
+                    .scaleEffect(x: 1.0, y: braceVerticalScale, anchor: .center)
+                    .position(x: braceX, y: bassBottomY)
+
+                Rectangle()
+                    .fill(Color.black.opacity(0.82))
+                    .frame(width: 2.2, height: braceSpan)
+                    .position(x: barLineX, y: braceCenterY)
+
+                ForEach(trebleLineSteps, id: \.self) { step in
+                    staffLine(at: yFor(step: step, top: topPad, stepSize: stepSize), startX: staffStartX, width: width)
                 }
 
-                    let clefHeight: CGFloat = h * 1.03
-                let clefX: CGFloat = w * 0.15
-                let clefY: CGFloat = yFor(step: 4, top: staffTop, stepSize: stepSize) - lineGap
+                ForEach(bassLineSteps, id: \.self) { step in
+                    staffLine(at: yFor(step: step, top: topPad, stepSize: stepSize), startX: staffStartX, width: width)
+                }
 
                 Text("𝄞")
-                    .font(.system(size: clefHeight))
+                    .font(.system(size: lineGap * 7.7))
                     .foregroundStyle(Color.black.opacity(0.92))
-                    .position(x: clefX, y: clefY)
+                    .position(
+                        x: width * 0.22,
+                        y: yFor(step: 4, top: topPad, stepSize: stepSize) - lineGap * 1.25
+                    )
+
+                Text("𝄢")
+                    .font(.system(size: lineGap * 4.3))
+                    .foregroundStyle(Color.black.opacity(0.92))
+                    .position(
+                        x: width * 0.24,
+                        y: yFor(step: -6, top: topPad, stepSize: stepSize) - lineGap * 0.5
+                    )
 
                 if noteCount > 0 {
-                    // Spread multiple note heads horizontally when there are many
-                    let baseX: CGFloat = noteCount == 1 ? w * 0.56 : w * 0.42
-                    let spacing: CGFloat = noteCount > 1 ? min(noteHeadWidth * 1.8, (w * 0.45) / CGFloat(noteCount)) : 0
+                    let baseX: CGFloat = noteCount == 1 ? width * 0.64 : width * 0.50
+                    let availableWidth = width * 0.40
+                    let spacing = noteCount > 1 ? min(noteHeadWidth * 1.8, availableWidth / CGFloat(noteCount)) : 0
 
-                    ForEach(Array(zip(notes, diatonicSteps).enumerated()), id: \.offset) { idx, pair in
+                    ForEach(Array(zip(notes, diatonicSteps).enumerated()), id: \.offset) { index, pair in
+                        let note = pair.0
                         let step = pair.1
-                        let noteX = baseX + CGFloat(idx) * spacing
-                        let noteY = yFor(step: step, top: staffTop, stepSize: stepSize)
+                        let noteX = baseX + CGFloat(index) * spacing
+                        let noteY = yFor(step: step, top: topPad, stepSize: stepSize)
+                        let stemDirection = stemDirection(for: step)
+                        let stemHeight = lineGap * 2.3
 
-                        // Ledger line for C4 or below
-                        if step <= 1 {
+                        ForEach(ledgerSteps(for: step), id: \.self) { ledgerStep in
                             Rectangle()
                                 .fill(Color.black.opacity(0.60))
-                                .frame(width: 36, height: 1.5)
-                                .position(x: noteX, y: yFor(step: 0, top: staffTop, stepSize: stepSize))
+                                .frame(width: 36, height: 1.4)
+                                .position(x: noteX, y: yFor(step: ledgerStep, top: topPad, stepSize: stepSize))
                         }
 
-                        // Stem
                         Rectangle()
                             .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                            .frame(width: 2.2, height: lineGap * 2.2)
-                            .position(x: noteX + (noteHeadWidth * 0.43), y: noteY - lineGap * 1.1)
+                            .frame(width: 2.1, height: stemHeight)
+                            .position(
+                                x: noteX + (noteHeadWidth * 0.42 * (stemDirection > 0 ? -1 : 1)),
+                                y: noteY + stemDirection * (stemHeight * 0.5)
+                            )
 
-                        // Note head
                         Ellipse()
                             .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
                             .frame(width: noteHeadWidth, height: noteHeadHeight)
                             .rotationEffect(.degrees(-10))
                             .position(x: noteX, y: noteY)
+
+                        if note.isBlackKey {
+                            Text("♯")
+                                .font(.system(size: noteHeadHeight * 1.2, weight: .semibold, design: .serif))
+                                .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
+                                .position(x: noteX - noteHeadWidth * 0.95, y: noteY - 2)
+                        }
                     }
 
-                    // Note labels (top-left)
                     Text(notes.map(\.displayName).joined(separator: " · "))
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.secondary)
-                        .position(x: w * 0.3, y: 24)
+                        .position(x: width * 0.42, y: labelY)
                 } else {
-                    Text("Current note on staff")
+                    Text("Current notes on grand staff")
                         .font(.headline)
                         .foregroundStyle(.secondary)
+                        .position(x: width * 0.44, y: labelY)
                 }
             }
         }
+    }
+
+    private func staffLine(at y: CGFloat, startX: CGFloat, width: CGFloat) -> some View {
+        Rectangle()
+            .fill(Color.black.opacity(0.72))
+            .frame(height: 1.2)
+            .frame(width: width - startX - 12)
+            .position(x: startX + (width - startX - 12) / 2, y: y)
+    }
+
+    private static func logBraceMetrics(
+        braceCenterY: CGFloat,
+        trebleTopY: CGFloat,
+        bassBottomY: CGFloat,
+        height: CGFloat,
+        topPad: CGFloat,
+        bottomPad: CGFloat,
+        stepSize: CGFloat
+    ) {
+        print(
+            "StaffCanvas braceCenterY=\(braceCenterY), trebleTopY=\(trebleTopY), bassBottomY=\(bassBottomY), height=\(height), topPad=\(topPad), bottomPad=\(bottomPad), stepSize=\(stepSize)"
+        )
     }
 }
