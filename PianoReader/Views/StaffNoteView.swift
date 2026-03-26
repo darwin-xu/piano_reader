@@ -87,6 +87,8 @@ private struct StaffCanvas: View {
             let noteCount = notes.count
             let labelY: CGFloat = 22
             let smuflBrace = String(UnicodeScalar(0xE000)!)
+            let smuflTrebleClef = String(UnicodeScalar(0xE050)!)
+            let smuflBassClef = String(UnicodeScalar(0xE062)!)
             let trebleTopY = yFor(step: 10, top: topPad, stepSize: stepSize)
             let bassBottomY = yFor(step: -10, top: topPad, stepSize: stepSize)
             let braceCenterY = (trebleTopY + bassBottomY) / 2
@@ -94,8 +96,18 @@ private struct StaffCanvas: View {
             let braceBaseSize = lineGap * 10
             let braceVerticalScale = max(braceSpan / (braceBaseSize * 1.45), 1)
             let braceFont = UIFont(name: "Bravura", size: braceBaseSize) ?? .systemFont(ofSize: braceBaseSize)
-            let trebleClefFont = UIFont.systemFont(ofSize: lineGap * 7.7)
-            let bassClefFont = UIFont.systemFont(ofSize: lineGap * 4.3)
+            
+            let clefLeftX: CGFloat = 50
+            let trebleClefSize = lineGap * 4
+            let trebleClefFont = UIFont(name: "Bravura", size: trebleClefSize) ?? .systemFont(ofSize: trebleClefSize)
+            let trebleClefWidth = glyphMetrics(for: smuflTrebleClef, font: trebleClefFont).bounds.width
+            let trebleClefCenterX = clefLeftX + trebleClefWidth / 2
+
+            let bassClefSize = lineGap * 4
+            let bassClefFont = UIFont(name: "Bravura", size: bassClefSize) ?? .systemFont(ofSize: bassClefSize)
+            let bassClefWidth = glyphMetrics(for: smuflBassClef, font: bassClefFont).bounds.width
+            let bassClefCenterX = clefLeftX + bassClefWidth / 2
+            
             let barLineX = width * 0.10
             let braceX = width * 0.07
             let staffStartX = barLineX
@@ -139,34 +151,34 @@ private struct StaffCanvas: View {
                     staffLine(at: yFor(step: step, top: topPad, stepSize: stepSize), startX: staffStartX, width: width)
                 }
 
-                Text("𝄞")
-                    .font(.system(size: lineGap * 7.7))
+                Text(smuflTrebleClef)
+                    .font(.custom("Bravura", size: trebleClefSize))
                     .foregroundStyle(Color.black.opacity(0.92))
                     .overlay(
                         GlyphDebugBox(
-                            text: "𝄞",
+                            text: smuflTrebleClef,
                             font: trebleClefFont,
                             color: .green
                         )
                     )
                     .position(
-                        x: width * 0.22,
-                        y: yFor(step: 4, top: topPad, stepSize: stepSize) - lineGap * 1.25
+                        x: trebleClefCenterX,
+                        y: yFor(step: 4, top: topPad, stepSize: stepSize) - lineGap * 0
                     )
 
-                Text("𝄢")
-                    .font(.system(size: lineGap * 4.3))
+                Text(smuflBassClef)
+                    .font(.custom("Bravura", size: bassClefSize))
                     .foregroundStyle(Color.black.opacity(0.92))
                     .overlay(
                         GlyphDebugBox(
-                            text: "𝄢",
+                            text: smuflBassClef,
                             font: bassClefFont,
                             color: .blue
                         )
                     )
                     .position(
-                        x: width * 0.22,
-                        y: yFor(step: -6, top: topPad, stepSize: stepSize) - lineGap * 0.5
+                        x: bassClefCenterX,
+                        y: yFor(step: -4, top: topPad, stepSize: stepSize) - lineGap * 0
                     )
 
                 if noteCount > 0 {
@@ -256,7 +268,7 @@ private struct GlyphDebugBox: View {
     var scaleY: CGFloat = 1
 
     var body: some View {
-        let metrics = glyphMetrics()
+        let metrics = glyphMetrics(for: text, font: font)
 
         return ZStack {
             Rectangle()
@@ -276,36 +288,37 @@ private struct GlyphDebugBox: View {
         )
     }
 
-    private func glyphMetrics() -> (bounds: CGRect, lineSize: CGSize, offset: CGSize) {
-        guard !text.isEmpty else {
-            return (.zero, .zero, .zero)
-        }
+}
 
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
-        ]
-        let attributedString = NSAttributedString(string: text, attributes: attributes)
-        let line = CTLineCreateWithAttributedString(attributedString)
-
-        var ascent: CGFloat = 0
-        var descent: CGFloat = 0
-        var leading: CGFloat = 0
-        let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
-        let lineHeight = ascent + descent
-        let glyphBounds = CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds, .excludeTypographicLeading]).standardized.integral
-
-        let lineCenterX = lineWidth * 0.5
-        let lineCenterY = (ascent - descent) * 0.5
-        let glyphCenterX = glyphBounds.midX
-        let glyphCenterY = glyphBounds.midY
-
-        return (
-            glyphBounds,
-            CGSize(width: lineWidth, height: lineHeight),
-            CGSize(
-                width: glyphCenterX - lineCenterX,
-                height: -(glyphCenterY - lineCenterY)
-            )
-        )
+private func glyphMetrics(for text: String, font: UIFont) -> (bounds: CGRect, lineSize: CGSize, offset: CGSize) {
+    guard !text.isEmpty else {
+        return (.zero, .zero, .zero)
     }
+
+    let attributes: [NSAttributedString.Key: Any] = [
+        .font: font,
+    ]
+    let attributedString = NSAttributedString(string: text, attributes: attributes)
+    let line = CTLineCreateWithAttributedString(attributedString)
+
+    var ascent: CGFloat = 0
+    var descent: CGFloat = 0
+    var leading: CGFloat = 0
+    let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+    let lineHeight = ascent + descent
+    let glyphBounds = CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds, .excludeTypographicLeading]).standardized.integral
+
+    let lineCenterX = lineWidth * 0.5
+    let lineCenterY = (ascent - descent) * 0.5
+    let glyphCenterX = glyphBounds.midX
+    let glyphCenterY = glyphBounds.midY
+
+    return (
+        glyphBounds,
+        CGSize(width: lineWidth, height: lineHeight),
+        CGSize(
+            width: glyphCenterX - lineCenterX,
+            height: -(glyphCenterY - lineCenterY)
+        )
+    )
 }
