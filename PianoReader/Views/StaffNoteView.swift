@@ -89,15 +89,25 @@ private struct StaffCanvas: View {
             let smuflBrace = String(UnicodeScalar(0xE000)!)
             let smuflTrebleClef = String(UnicodeScalar(0xE050)!)
             let smuflBassClef = String(UnicodeScalar(0xE062)!)
+            
+            // Left and right margin of the grand sheet
+            let margin: CGFloat = 10
+
             let trebleTopY = yFor(step: 10, top: topPad, stepSize: stepSize)
             let bassBottomY = yFor(step: -10, top: topPad, stepSize: stepSize)
+            
             let braceCenterY = (trebleTopY + bassBottomY) / 2
             let braceSpan = bassBottomY - trebleTopY
             let braceBaseSize = lineGap * 10
             let braceVerticalScale = max(braceSpan / (braceBaseSize * 1.45), 1)
             let braceFont = UIFont(name: "Bravura", size: braceBaseSize) ?? .systemFont(ofSize: braceBaseSize)
+            let braceWidth = glyphMetrics(for: smuflBrace, font: braceFont).bounds.width
+            let braceCenterX = margin + braceWidth / 2
             
-            let clefLeftX: CGFloat = 50
+            // X position for the sheet bar
+            let barLineX = margin + braceWidth
+            
+            let clefLeftX: CGFloat = barLineX + 10
             let trebleClefSize = lineGap * 4
             let trebleClefFont = UIFont(name: "Bravura", size: trebleClefSize) ?? .systemFont(ofSize: trebleClefSize)
             let trebleClefWidth = glyphMetrics(for: smuflTrebleClef, font: trebleClefFont).bounds.width
@@ -107,9 +117,7 @@ private struct StaffCanvas: View {
             let bassClefFont = UIFont(name: "Bravura", size: bassClefSize) ?? .systemFont(ofSize: bassClefSize)
             let bassClefWidth = glyphMetrics(for: smuflBassClef, font: bassClefFont).bounds.width
             let bassClefCenterX = clefLeftX + bassClefWidth / 2
-            
-            let barLineX = width * 0.10
-            let braceX = width * 0.07
+
             let staffStartX = barLineX
             let _ = Self.logBraceMetrics(
                 braceCenterY: braceCenterY,
@@ -136,7 +144,7 @@ private struct StaffCanvas: View {
                             scaleY: braceVerticalScale
                         )
                     )
-                    .position(x: braceX, y: bassBottomY)
+                    .position(x: braceCenterX, y: bassBottomY)
 
                 Rectangle()
                     .fill(Color.black.opacity(0.82))
@@ -144,11 +152,21 @@ private struct StaffCanvas: View {
                     .position(x: barLineX, y: braceCenterY)
 
                 ForEach(trebleLineSteps, id: \.self) { step in
-                    staffLine(at: yFor(step: step, top: topPad, stepSize: stepSize), startX: staffStartX, width: width)
+                    staffLine(
+                        at: yFor(step: step, top: topPad, stepSize: stepSize),
+                        startX: staffStartX,
+                        width: width,
+                        rightMargin: margin
+                    )
                 }
 
                 ForEach(bassLineSteps, id: \.self) { step in
-                    staffLine(at: yFor(step: step, top: topPad, stepSize: stepSize), startX: staffStartX, width: width)
+                    staffLine(
+                        at: yFor(step: step, top: topPad, stepSize: stepSize),
+                        startX: staffStartX,
+                        width: width,
+                        rightMargin: margin
+                    )
                 }
 
                 Text(smuflTrebleClef)
@@ -237,12 +255,12 @@ private struct StaffCanvas: View {
         }
     }
 
-    private func staffLine(at y: CGFloat, startX: CGFloat, width: CGFloat) -> some View {
+    private func staffLine(at y: CGFloat, startX: CGFloat, width: CGFloat, rightMargin: CGFloat) -> some View {
         Rectangle()
             .fill(Color.black.opacity(0.72))
-            .frame(height: 1.2)
-            .frame(width: width - startX - 12)
-            .position(x: startX + (width - startX - 12) / 2, y: y)
+            .frame(height: 1)
+            .frame(width: width - startX - rightMargin)
+            .position(x: startX + (width - startX - rightMargin) / 2, y: y)
     }
 
     private static func logBraceMetrics(
