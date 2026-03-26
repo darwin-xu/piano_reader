@@ -1,4 +1,6 @@
+import CoreText
 import SwiftUI
+import UIKit
 
 // Grand staff reference using diatonic steps relative to middle C (C4 = step 0).
 // Treble lines:  E4 G4 B4 D5 F5  -> steps 2, 4, 6, 8, 10
@@ -91,9 +93,12 @@ private struct StaffCanvas: View {
             let braceSpan = bassBottomY - trebleTopY
             let braceBaseSize = lineGap * 10
             let braceVerticalScale = max(braceSpan / (braceBaseSize * 1.45), 1)
+            let braceFont = UIFont(name: "Bravura", size: braceBaseSize) ?? .systemFont(ofSize: braceBaseSize)
+            let trebleClefFont = UIFont.systemFont(ofSize: lineGap * 7.7)
+            let bassClefFont = UIFont.systemFont(ofSize: lineGap * 4.3)
             let barLineX = width * 0.10
             let braceX = width * 0.07
-            let staffStartX = barLineX + 6
+            let staffStartX = barLineX
             let _ = Self.logBraceMetrics(
                 braceCenterY: braceCenterY,
                 trebleTopY: trebleTopY,
@@ -111,6 +116,14 @@ private struct StaffCanvas: View {
                     .font(.custom("Bravura", size: braceBaseSize))
                     .foregroundStyle(Color.black.opacity(0.88))
                     .scaleEffect(x: 1.0, y: braceVerticalScale, anchor: .center)
+                    .overlay(
+                        GlyphDebugBox(
+                            text: smuflBrace,
+                            font: braceFont,
+                            color: .red,
+                            scaleY: braceVerticalScale
+                        )
+                    )
                     .position(x: braceX, y: bassBottomY)
 
                 Rectangle()
@@ -129,6 +142,13 @@ private struct StaffCanvas: View {
                 Text("𝄞")
                     .font(.system(size: lineGap * 7.7))
                     .foregroundStyle(Color.black.opacity(0.92))
+                    .overlay(
+                        GlyphDebugBox(
+                            text: "𝄞",
+                            font: trebleClefFont,
+                            color: .green
+                        )
+                    )
                     .position(
                         x: width * 0.22,
                         y: yFor(step: 4, top: topPad, stepSize: stepSize) - lineGap * 1.25
@@ -137,8 +157,15 @@ private struct StaffCanvas: View {
                 Text("𝄢")
                     .font(.system(size: lineGap * 4.3))
                     .foregroundStyle(Color.black.opacity(0.92))
+                    .overlay(
+                        GlyphDebugBox(
+                            text: "𝄢",
+                            font: bassClefFont,
+                            color: .blue
+                        )
+                    )
                     .position(
-                        x: width * 0.24,
+                        x: width * 0.22,
                         y: yFor(step: -6, top: topPad, stepSize: stepSize) - lineGap * 0.5
                     )
 
@@ -217,6 +244,68 @@ private struct StaffCanvas: View {
     ) {
         print(
             "StaffCanvas braceCenterY=\(braceCenterY), trebleTopY=\(trebleTopY), bassBottomY=\(bassBottomY), height=\(height), topPad=\(topPad), bottomPad=\(bottomPad), stepSize=\(stepSize)"
+        )
+    }
+}
+
+private struct GlyphDebugBox: View {
+    let text: String
+    let font: UIFont
+    let color: Color
+    var scaleX: CGFloat = 1
+    var scaleY: CGFloat = 1
+
+    var body: some View {
+        let metrics = glyphMetrics()
+
+        return ZStack {
+            Rectangle()
+                .stroke(color.opacity(0.9), lineWidth: 1.5)
+                .frame(
+                    width: max(metrics.bounds.width * scaleX, 1),
+                    height: max(metrics.bounds.height * scaleY, 1)
+                )
+                .offset(
+                    x: metrics.offset.width * scaleX,
+                    y: metrics.offset.height * scaleY
+                )
+        }
+        .frame(
+            width: max(metrics.lineSize.width * scaleX, 1),
+            height: max(metrics.lineSize.height * scaleY, 1)
+        )
+    }
+
+    private func glyphMetrics() -> (bounds: CGRect, lineSize: CGSize, offset: CGSize) {
+        guard !text.isEmpty else {
+            return (.zero, .zero, .zero)
+        }
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+        ]
+        let attributedString = NSAttributedString(string: text, attributes: attributes)
+        let line = CTLineCreateWithAttributedString(attributedString)
+
+        var ascent: CGFloat = 0
+        var descent: CGFloat = 0
+        var leading: CGFloat = 0
+        let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+        let lineHeight = ascent + descent
+        let glyphBounds = CTLineGetBoundsWithOptions(line, [.useGlyphPathBounds, .excludeTypographicLeading]).standardized.integral
+
+        let lineCenterX = lineWidth * 0.5
+        let lineCenterY = (ascent - descent) * 0.5
+        let glyphCenterX = glyphBounds.midX
+        let glyphCenterY = glyphBounds.midY
+
+        return (
+            glyphBounds,
+            CGSize(width: lineWidth, height: lineHeight),
+            CGSize(
+                width: glyphCenterX - lineCenterX,
+                height: -(glyphCenterY - lineCenterY)
+            )
         )
     }
 }

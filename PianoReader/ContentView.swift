@@ -2,16 +2,20 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel: RecognitionViewModel
+    @State private var staffHeightRatio: CGFloat = 0.35
+    @State private var dragStartStaffHeightRatio: CGFloat?
     // TODO: style to choose from
     // .layeredRibbons
     // .envelopeBars
     // .neonThreads
     private let waveformStyle: WaveformEnvelopeView.Style = .neonThreads
+    private let minStaffHeightRatio: CGFloat = 0.20
+    private let maxStaffHeightRatio: CGFloat = 0.60
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                statusBar
+                statusBar(containerHeight: geometry.size.height)
                 WaveformEnvelopeView(
                     envelope: viewModel.waveformEnvelope,
                     isListening: viewModel.isListening,
@@ -20,7 +24,7 @@ struct ContentView: View {
                     style: waveformStyle
                 )
                 StaffNoteView(notes: viewModel.detectedNotes)
-                    .frame(height: geometry.size.height * 0.35)
+                    .frame(height: geometry.size.height * staffHeightRatio)
                 PianoKeyboardView(activeMIDINotes: viewModel.activeMIDINotes)
                     .frame(height: geometry.size.height * 0.24)
                 controlsPanel
@@ -43,16 +47,44 @@ struct ContentView: View {
         }
     }
 
-    private var statusBar: some View {
-        HStack {
-            Spacer()
-            Text(viewModel.isListening ? "Listening..." : "Ready")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color(red: 0.24, green: 0.42, blue: 0.67))
-            Spacer()
+    private func statusBar(containerHeight: CGFloat) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                Spacer()
+                Text(viewModel.isListening ? "Listening..." : "Ready")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color(red: 0.24, green: 0.42, blue: 0.67))
+
+                Text("\(Int(staffHeightRatio * 100))%")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+
+            Capsule(style: .continuous)
+                .fill(Color.black.opacity(0.22))
+                .frame(width: 72, height: 6)
+                .contentShape(Rectangle())
+                .gesture(staffResizeGesture(containerHeight: containerHeight))
         }
         .frame(height: 64)
         .background(Color.white.opacity(0.92))
+    }
+
+    private func staffResizeGesture(containerHeight: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if dragStartStaffHeightRatio == nil {
+                    dragStartStaffHeightRatio = staffHeightRatio
+                }
+
+                let startingRatio = dragStartStaffHeightRatio ?? staffHeightRatio
+                let proposedRatio = startingRatio + (value.translation.height / max(containerHeight, 1))
+                staffHeightRatio = min(max(proposedRatio, minStaffHeightRatio), maxStaffHeightRatio)
+            }
+            .onEnded { _ in
+                dragStartStaffHeightRatio = nil
+            }
     }
 
     private var controlsPanel: some View {
