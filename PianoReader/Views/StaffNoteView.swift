@@ -9,6 +9,15 @@ import UIKit
 
 struct StaffNoteView: View {
     let notes: [PianoNote]
+    private static let exampleNotes: [PianoNote] = [
+        PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0),
+        PianoNote(midiNumber: 62, frequency: 293.66, centsOffset: 0),
+        PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0),
+        PianoNote(midiNumber: 65, frequency: 349.23, centsOffset: 0),
+        PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: 0),
+        PianoNote(midiNumber: 69, frequency: 440.00, centsOffset: 0),
+        PianoNote(midiNumber: 71, frequency: 493.88, centsOffset: 0),
+    ]
 
     // Chromatic pitch class (0-11) to diatonic step within one octave.
     // Accidentals share the same diatonic position as their natural note.
@@ -35,8 +44,9 @@ struct StaffNoteView: View {
     }
 
     var body: some View {
-        let pairs = notes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
-        StaffCanvas(notes: notes, diatonicSteps: pairs.map(\.step))
+        let displayNotes = notes.isEmpty ? Self.exampleNotes : notes
+        let pairs = displayNotes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
+        StaffCanvas(notes: displayNotes, diatonicSteps: pairs.map(\.step))
     }
 }
 
@@ -69,8 +79,16 @@ private struct StaffCanvas: View {
         return []
     }
 
-    private func stemDirection(for step: Int) -> CGFloat {
-        step >= 0 ? -1 : 1
+    private func noteGlyph(for step: Int) -> String {
+        let scalar: UInt32
+        if step >= 0 {
+            // Treble staff: middle line is step 6 (B4).
+            scalar = step >= 6 ? 0xE1D6 : 0xE1D5
+        } else {
+            // Bass staff: middle line is step -6 (D3).
+            scalar = step >= -6 ? 0xE1D6 : 0xE1D5
+        }
+        return String(UnicodeScalar(scalar)!)
     }
 
     var body: some View {
@@ -82,8 +100,6 @@ private struct StaffCanvas: View {
             let usableHeight = max(height - topPad - bottomPad, 120)
             let stepSize = usableHeight / 24
             let lineGap = stepSize * 2
-            let noteHeadHeight = lineGap * 0.96
-            let noteHeadWidth = lineGap * 1.35
             let noteCount = notes.count
             let labelY: CGFloat = 22
             let smuflBrace = String(UnicodeScalar(0xE000)!)
@@ -117,6 +133,7 @@ private struct StaffCanvas: View {
             let bassClefFont = UIFont(name: "Bravura", size: bassClefSize) ?? .systemFont(ofSize: bassClefSize)
             let bassClefWidth = glyphMetrics(for: smuflBassClef, font: bassClefFont).bounds.width
             let bassClefCenterX = clefLeftX + bassClefWidth / 2
+            let noteGlyphSize = lineGap * 3.2
 
             let staffStartX = barLineX
             let _ = Self.logBraceMetrics(
@@ -202,15 +219,14 @@ private struct StaffCanvas: View {
                 if noteCount > 0 {
                     let baseX: CGFloat = noteCount == 1 ? width * 0.64 : width * 0.50
                     let availableWidth = width * 0.40
-                    let spacing = noteCount > 1 ? min(noteHeadWidth * 1.8, availableWidth / CGFloat(noteCount)) : 0
+                    let spacing = noteCount > 1 ? min(lineGap * 1.8, availableWidth / CGFloat(noteCount)) : 0
 
                     ForEach(Array(zip(notes, diatonicSteps).enumerated()), id: \.offset) { index, pair in
                         let note = pair.0
                         let step = pair.1
                         let noteX = baseX + CGFloat(index) * spacing
                         let noteY = yFor(step: step, top: topPad, stepSize: stepSize)
-                        let stemDirection = stemDirection(for: step)
-                        let stemHeight = lineGap * 2.3
+                        let noteGlyph = noteGlyph(for: step)
 
                         ForEach(ledgerSteps(for: step), id: \.self) { ledgerStep in
                             Rectangle()
@@ -219,25 +235,16 @@ private struct StaffCanvas: View {
                                 .position(x: noteX, y: yFor(step: ledgerStep, top: topPad, stepSize: stepSize))
                         }
 
-                        Rectangle()
-                            .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                            .frame(width: 2.1, height: stemHeight)
-                            .position(
-                                x: noteX + (noteHeadWidth * 0.42 * (stemDirection > 0 ? -1 : 1)),
-                                y: noteY + stemDirection * (stemHeight * 0.5)
-                            )
-
-                        Ellipse()
-                            .fill(Color(red: 0.13, green: 0.18, blue: 0.27))
-                            .frame(width: noteHeadWidth, height: noteHeadHeight)
-                            .rotationEffect(.degrees(-10))
+                        Text(noteGlyph)
+                            .font(.custom("Bravura", size: noteGlyphSize))
+                            .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
                             .position(x: noteX, y: noteY)
 
                         if note.isBlackKey {
                             Text("♯")
-                                .font(.system(size: noteHeadHeight * 1.2, weight: .semibold, design: .serif))
+                                .font(.system(size: lineGap * 1.2, weight: .semibold, design: .serif))
                                 .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
-                                .position(x: noteX - noteHeadWidth * 0.95, y: noteY - 2)
+                                .position(x: noteX - lineGap * 1.1, y: noteY - 2)
                         }
                     }
 
