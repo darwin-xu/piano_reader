@@ -10,6 +10,13 @@ import UIKit
 struct StaffNoteView: View {
     let notes: [PianoNote]
     private static let exampleNotes: [PianoNote] = [
+        PianoNote(midiNumber: 48, frequency: 130.81, centsOffset: 0),
+        PianoNote(midiNumber: 50, frequency: 146.83, centsOffset: 0),
+        PianoNote(midiNumber: 52, frequency: 164.81, centsOffset: 0),
+        PianoNote(midiNumber: 53, frequency: 174.61, centsOffset: 0),
+        PianoNote(midiNumber: 55, frequency: 196.00, centsOffset: 0),
+        PianoNote(midiNumber: 57, frequency: 220.00, centsOffset: 0),
+        PianoNote(midiNumber: 59, frequency: 246.94, centsOffset: 0),
         PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0),
         PianoNote(midiNumber: 62, frequency: 293.66, centsOffset: 0),
         PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0),
@@ -35,6 +42,8 @@ struct StaffNoteView: View {
         5,  // A#
         6,  // B
     ]
+    private let scrollDuration: TimeInterval = 6
+    @State private var noteHistory: [ScrollingNoteEvent] = []
 
     private func diatonicStep(for midiNumber: Int) -> Int {
         let delta = midiNumber - 60
@@ -44,15 +53,81 @@ struct StaffNoteView: View {
     }
 
     var body: some View {
-        let displayNotes = notes.isEmpty ? Self.exampleNotes : notes
-        let pairs = displayNotes.map { (note: $0, step: diatonicStep(for: $0.midiNumber)) }
-        StaffCanvas(notes: displayNotes, diatonicSteps: pairs.map(\.step))
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
+            StaffCanvas(
+                currentNotes: notes,
+                scrollingNotes: visibleNotes(at: context.date)
+            )
+        }
+        .onAppear {
+            if !notes.isEmpty {
+                let now = Date()
+                append(notes: notes, at: now)
+            }
+        }
+        .onChange(of: notes.map(\.midiNumber)) {
+            if !notes.isEmpty {
+                let now = Date()
+                append(notes: notes, at: now)
+            }
+        }
+    }
+
+    private func visibleNotes(at date: Date) -> [VisibleScrollingNote] {
+        if notes.isEmpty {
+            return repeatingExampleNotes(at: date)
+        }
+
+        return noteHistory
+            .filter { date.timeIntervalSince($0.timestamp) <= scrollDuration }
+            .sorted { $0.timestamp < $1.timestamp }
+            .map { event in
+                let age = max(date.timeIntervalSince(event.timestamp), 0)
+                return VisibleScrollingNote(
+                    id: event.id,
+                    note: event.note,
+                    step: event.step,
+                    age: age
+                )
+            }
+    }
+
+    private func append(notes: [PianoNote], at date: Date) {
+        noteHistory.removeAll { date.timeIntervalSince($0.timestamp) > scrollDuration }
+        noteHistory.append(
+            contentsOf: notes.map { note in
+                ScrollingNoteEvent(
+                    note: note,
+                    step: diatonicStep(for: note.midiNumber),
+                    timestamp: date
+                )
+            }
+        )
+    }
+
+    private func repeatingExampleNotes(at date: Date) -> [VisibleScrollingNote] {
+        let noteCount = Self.exampleNotes.count
+        guard noteCount > 0 else { return [] }
+
+        let phase = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: scrollDuration)
+        let spacing = scrollDuration / Double(noteCount)
+
+        return Self.exampleNotes.enumerated().map { index, note in
+            let age = phase - Double(index) * spacing
+            let wrappedAge = age >= 0 ? age : age + scrollDuration
+            return VisibleScrollingNote(
+                id: UUID(),
+                note: note,
+                step: diatonicStep(for: note.midiNumber),
+                age: wrappedAge
+            )
+        }
     }
 }
 
 private struct StaffCanvas: View {
-    let notes: [PianoNote]
-    let diatonicSteps: [Int]
+    let currentNotes: [PianoNote]
+    let scrollingNotes: [VisibleScrollingNote]
 
     private let trebleLineSteps = [2, 4, 6, 8, 10]
     private let bassLineSteps = [-10, -8, -6, -4, -2]
@@ -100,7 +175,6 @@ private struct StaffCanvas: View {
             let usableHeight = max(height - topPad - bottomPad, 120)
             let stepSize = usableHeight / 24
             let lineGap = stepSize * 2
-            let noteCount = notes.count
             let labelY: CGFloat = 22
             let smuflBrace = String(UnicodeScalar(0xE000)!)
             let smuflTrebleClef = String(UnicodeScalar(0xE050)!)
@@ -134,6 +208,9 @@ private struct StaffCanvas: View {
             let bassClefWidth = glyphMetrics(for: smuflBassClef, font: bassClefFont).bounds.width
             let bassClefCenterX = clefLeftX + bassClefWidth / 2
             let noteGlyphSize = lineGap * 3.2
+            let noteStartX = clefLeftX + max(trebleClefWidth, bassClefWidth) + lineGap * 0.9
+            let noteEndX = width - margin
+            let notePointsPerSecond = noteGlyphSize * 1.6
 
             let staffStartX = barLineX
             let _ = Self.logBraceMetrics(
@@ -216,19 +293,13 @@ private struct StaffCanvas: View {
                         y: yFor(step: -4, top: topPad, stepSize: stepSize) - lineGap * 0
                     )
 
-                if noteCount > 0 {
-                    let baseX: CGFloat = noteCount == 1 ? width * 0.64 : width * 0.50
-                    let availableWidth = width * 0.40
-                    let spacing = noteCount > 1 ? min(lineGap * 1.8, availableWidth / CGFloat(noteCount)) : 0
+                ForEach(scrollingNotes) { entry in
+                    let noteX = noteEndX - CGFloat(entry.age) * notePointsPerSecond
+                    let noteY = yFor(step: entry.step, top: topPad, stepSize: stepSize)
+                    let noteGlyph = noteGlyph(for: entry.step)
 
-                    ForEach(Array(zip(notes, diatonicSteps).enumerated()), id: \.offset) { index, pair in
-                        let note = pair.0
-                        let step = pair.1
-                        let noteX = baseX + CGFloat(index) * spacing
-                        let noteY = yFor(step: step, top: topPad, stepSize: stepSize)
-                        let noteGlyph = noteGlyph(for: step)
-
-                        ForEach(ledgerSteps(for: step), id: \.self) { ledgerStep in
+                    if noteX >= noteStartX - lineGap && noteX <= noteEndX + lineGap {
+                        ForEach(ledgerSteps(for: entry.step), id: \.self) { ledgerStep in
                             Rectangle()
                                 .fill(Color.black.opacity(0.60))
                                 .frame(width: 36, height: 1.4)
@@ -240,20 +311,22 @@ private struct StaffCanvas: View {
                             .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
                             .position(x: noteX, y: noteY)
 
-                        if note.isBlackKey {
+                        if entry.note.isBlackKey {
                             Text("♯")
                                 .font(.system(size: lineGap * 1.2, weight: .semibold, design: .serif))
                                 .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
                                 .position(x: noteX - lineGap * 1.1, y: noteY - 2)
                         }
                     }
+                }
 
-                    Text(notes.map(\.displayName).joined(separator: " · "))
+                if !currentNotes.isEmpty {
+                    Text(currentNotes.map(\.displayName).joined(separator: " · "))
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .position(x: width * 0.42, y: labelY)
                 } else {
-                    Text("Current notes on grand staff")
+                    Text(scrollingNotes.isEmpty ? "Waiting for notes" : "Sliding note history")
                         .font(.headline)
                         .foregroundStyle(.secondary)
                         .position(x: width * 0.44, y: labelY)
@@ -283,6 +356,20 @@ private struct StaffCanvas: View {
             "StaffCanvas braceCenterY=\(braceCenterY), trebleTopY=\(trebleTopY), bassBottomY=\(bassBottomY), height=\(height), topPad=\(topPad), bottomPad=\(bottomPad), stepSize=\(stepSize)"
         )
     }
+}
+
+private struct ScrollingNoteEvent: Identifiable {
+    let id = UUID()
+    let note: PianoNote
+    let step: Int
+    let timestamp: Date
+}
+
+private struct VisibleScrollingNote: Identifiable {
+    let id: UUID
+    let note: PianoNote
+    let step: Int
+    let age: Double
 }
 
 private struct GlyphDebugBox: View {
