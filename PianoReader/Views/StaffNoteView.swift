@@ -208,7 +208,9 @@ private struct StaffCanvas: View {
             let bassClefWidth = glyphMetrics(for: smuflBassClef, font: bassClefFont).bounds.width
             let bassClefCenterX = clefLeftX + bassClefWidth / 2
             let noteGlyphSize = lineGap * 3.2
-            let noteStartX = clefLeftX + max(trebleClefWidth, bassClefWidth) + lineGap * 0.9
+            
+            //let noteStartX = clefLeftX + max(trebleClefWidth, bassClefWidth) + lineGap * 0.9
+            let noteStartX = max(clefLeftX + trebleClefWidth, clefLeftX + bassClefWidth) + 10
             let noteEndX = width - margin
             let notePointsPerSecond = noteGlyphSize * 1.6
 
@@ -263,6 +265,17 @@ private struct StaffCanvas: View {
                     )
                 }
 
+                Rectangle()
+                    .stroke(Color.orange.opacity(0.9), lineWidth: 1.5)
+                    .frame(
+                        width: max(noteEndX - noteStartX, 1),
+                        height: max(usableHeight, 1)
+                    )
+                    .position(
+                        x: noteStartX + (noteEndX - noteStartX) / 2,
+                        y: topPad + usableHeight / 2
+                    )
+
                 Text(smuflTrebleClef)
                     .font(.custom("Bravura", size: trebleClefSize))
                     .foregroundStyle(Color.black.opacity(0.92))
@@ -293,13 +306,25 @@ private struct StaffCanvas: View {
                         y: yFor(step: -4, top: topPad, stepSize: stepSize) - lineGap * 0
                     )
 
+                let noteHeadFont = UIFont(name: "Bravura", size: noteGlyphSize) ?? .systemFont(ofSize: noteGlyphSize)
+                let sharpFont = UIFont.systemFont(ofSize: lineGap * 1.2, weight: .semibold)
+
                 ForEach(scrollingNotes) { entry in
                     let noteX = noteEndX - CGFloat(entry.age) * notePointsPerSecond
                     let noteY = yFor(step: entry.step, top: topPad, stepSize: stepSize)
                     let noteGlyph = noteGlyph(for: entry.step)
+                    let ledgers = ledgerSteps(for: entry.step)
 
-                    if noteX >= noteStartX - lineGap && noteX <= noteEndX + lineGap {
-                        ForEach(ledgerSteps(for: entry.step), id: \.self) { ledgerStep in
+                    let noteHeadHalfWidth = max(glyphMetrics(for: noteGlyph, font: noteHeadFont).bounds.width / 2, 1)
+                    let ledgerHalfWidth: CGFloat = ledgers.isEmpty ? noteHeadHalfWidth : max(noteHeadHalfWidth, 18)
+                    let accidentalOffsetX: CGFloat = entry.note.isBlackKey ? lineGap * 1.1 : 0
+                    let accidentalHalfWidth: CGFloat = entry.note.isBlackKey ? max(glyphMetrics(for: "♯", font: sharpFont).bounds.width / 2, 1) : 0
+
+                    let leftEdge = noteX - ledgerHalfWidth - accidentalOffsetX - accidentalHalfWidth
+                    let rightEdge = noteX + ledgerHalfWidth
+
+                    if leftEdge >= noteStartX && rightEdge <= noteEndX {
+                        ForEach(ledgers, id: \.self) { ledgerStep in
                             Rectangle()
                                 .fill(Color.black.opacity(0.60))
                                 .frame(width: 36, height: 1.4)
@@ -315,7 +340,7 @@ private struct StaffCanvas: View {
                             Text("♯")
                                 .font(.system(size: lineGap * 1.2, weight: .semibold, design: .serif))
                                 .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
-                                .position(x: noteX - lineGap * 1.1, y: noteY - 2)
+                                .position(x: noteX - accidentalOffsetX, y: noteY - 2)
                         }
                     }
                 }
@@ -434,3 +459,16 @@ private func glyphMetrics(for text: String, font: UIFont) -> (bounds: CGRect, li
         )
     )
 }
+#Preview {
+    StaffNoteView(
+        notes: [
+            PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0),
+            PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0),
+            PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: 0),
+        ]
+    )
+    .frame(height: 320)
+    .padding()
+    .background(Color(.systemGroupedBackground))
+}
+
