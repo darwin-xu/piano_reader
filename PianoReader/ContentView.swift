@@ -4,6 +4,12 @@ struct ContentView: View {
     @ObservedObject var viewModel: RecognitionViewModel
     @State private var staffHeightRatio: CGFloat = 0.35
     @State private var dragStartStaffHeightRatio: CGFloat?
+
+    // MARK: - Keyboard PoC (remove when no longer needed)
+    @StateObject private var staffNoteQueue = NoteQueue()
+    @FocusState private var isKeyboardFocused: Bool
+    // END Keyboard PoC
+
     // TODO: style to choose from
     // .layeredRibbons
     // .envelopeBars
@@ -23,7 +29,7 @@ struct ContentView: View {
                     detailLabel: viewModel.waveformDetailText,
                     style: waveformStyle
                 )
-                StaffNoteView(notes: viewModel.detectedNotes)
+                StaffNoteView(queue: staffNoteQueue)
                     .frame(height: geometry.size.height * staffHeightRatio)
                 PianoKeyboardView(activeMIDINotes: viewModel.activeMIDINotes)
                     .frame(height: geometry.size.height * 0.24)
@@ -45,6 +51,17 @@ struct ContentView: View {
         .task {
             await viewModel.prepareAudio()
         }
+        .onChange(of: viewModel.detectedNotes) { _, newNotes in
+            for note in newNotes { staffNoteQueue.enqueue(note) }
+        }
+        // MARK: - Keyboard PoC (remove when no longer needed)
+        .focusable()
+        .focused($isKeyboardFocused)
+        .onKeyPress(phases: .down) { press in
+            handleKeyPress(press.key) ? .handled : .ignored
+        }
+        .onAppear { isKeyboardFocused = true }
+        // END Keyboard PoC
     }
 
     private func statusBar(containerHeight: CGFloat) -> some View {
@@ -132,6 +149,20 @@ struct ContentView: View {
                 .ignoresSafeArea(edges: .bottom)
         )
     }
+
+    // MARK: - Keyboard PoC (remove when no longer needed)
+    @discardableResult
+    private func handleKeyPress(_ key: KeyEquivalent) -> Bool {
+        let noteMap: [Character: Int] = [
+            "a": 69, "b": 71, "c": 60,
+            "d": 62, "e": 64, "f": 65, "g": 67,
+        ]
+        guard let midi = noteMap[key.character] else { return false }
+        let freq = 440.0 * pow(2.0, Double(midi - 69) / 12.0)
+        staffNoteQueue.enqueue(PianoNote(midiNumber: midi, frequency: freq, centsOffset: 0))
+        return true
+    }
+    // END Keyboard PoC
 
 }
 

@@ -7,127 +7,52 @@ import UIKit
 // Bass lines:    G2 B2 D3 F3 A3  -> steps -10, -8, -6, -4, -2
 // Middle C sits between the staves on ledger line step 0.
 
-struct StaffNoteView: View {
-    let notes: [PianoNote]
-    private static let exampleNotes: [PianoNote] = [
-        PianoNote(midiNumber: 48, frequency: 130.81, centsOffset: 0),
-        PianoNote(midiNumber: 50, frequency: 146.83, centsOffset: 0),
-        PianoNote(midiNumber: 52, frequency: 164.81, centsOffset: 0),
-        PianoNote(midiNumber: 53, frequency: 174.61, centsOffset: 0),
-        PianoNote(midiNumber: 55, frequency: 196.00, centsOffset: 0),
-        PianoNote(midiNumber: 57, frequency: 220.00, centsOffset: 0),
-        PianoNote(midiNumber: 59, frequency: 246.94, centsOffset: 0),
-        PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0),
-        PianoNote(midiNumber: 62, frequency: 293.66, centsOffset: 0),
-        PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0),
-        PianoNote(midiNumber: 65, frequency: 349.23, centsOffset: 0),
-        PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: 0),
-        PianoNote(midiNumber: 69, frequency: 440.00, centsOffset: 0),
-        PianoNote(midiNumber: 71, frequency: 493.88, centsOffset: 0),
-    ]
+// MARK: - NoteQueue
 
-    // Chromatic pitch class (0-11) to diatonic step within one octave.
-    // Accidentals share the same diatonic position as their natural note.
-    private static let pitchClassStep: [Int] = [
-        0,  // C
-        0,  // C#
-        1,  // D
-        1,  // D#
-        2,  // E
-        3,  // F
-        3,  // F#
-        4,  // G
-        4,  // G#
-        5,  // A
-        5,  // A#
-        6,  // B
-    ]
-    private let scrollDuration: TimeInterval = 6
-    @State private var noteHistory: [ScrollingNoteEvent] = []
-
-    private func diatonicStep(for midiNumber: Int) -> Int {
-        let delta = midiNumber - 60
-        let octaves = delta >= 0 ? delta / 12 : (delta - 11) / 12
-        let pitchClass = ((delta % 12) + 12) % 12
-        return octaves * 7 + Self.pitchClassStep[pitchClass]
+/// Public interface for injecting notes into StaffNoteView.
+/// Call `enqueue(_:)` to add a note; StaffNoteView observes this object.
+final class NoteQueue: ObservableObject {
+    struct QueuedNote: Identifiable {
+        let id = UUID()
+        let note: PianoNote
     }
+
+    @Published private(set) var notes: [QueuedNote] = []
+
+    func enqueue(_ note: PianoNote) {
+        // Defer the mutation so it doesn't publish during an active view-update pass.
+        Task { @MainActor in
+            self.notes.append(QueuedNote(note: note))
+        }
+    }
+
+    fileprivate func trim(keepingAtMost maxCount: Int) {
+        guard notes.count > maxCount else { return }
+        notes.removeFirst(notes.count - maxCount)
+    }
+}
+
+// Chromatic pitch class (0-11) to diatonic step within one octave.
+// Accidentals share the same diatonic position as their natural note.
+private let pitchClassStep: [Int] = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]
+
+private func diatonicStep(for midiNumber: Int) -> Int {
+    let delta = midiNumber - 60
+    let octaves = delta >= 0 ? delta / 12 : (delta - 11) / 12
+    let pitchClass = ((delta % 12) + 12) % 12
+    return octaves * 7 + pitchClassStep[pitchClass]
+}
+
+struct StaffNoteView: View {
+    @ObservedObject var queue: NoteQueue
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
-            StaffCanvas(
-                currentNotes: notes,
-                scrollingNotes: visibleNotes(at: context.date)
-            )
-        }
-        .onAppear {
-            if !notes.isEmpty {
-                let now = Date()
-                append(notes: notes, at: now)
-            }
-        }
-        .onChange(of: notes.map(\.midiNumber)) {
-            if !notes.isEmpty {
-                let now = Date()
-                append(notes: notes, at: now)
-            }
-        }
-    }
-
-    private func visibleNotes(at date: Date) -> [VisibleScrollingNote] {
-        if notes.isEmpty {
-            return repeatingExampleNotes(at: date)
-        }
-
-        return noteHistory
-            .filter { date.timeIntervalSince($0.timestamp) <= scrollDuration }
-            .sorted { $0.timestamp < $1.timestamp }
-            .map { event in
-                let age = max(date.timeIntervalSince(event.timestamp), 0)
-                return VisibleScrollingNote(
-                    id: event.id,
-                    note: event.note,
-                    step: event.step,
-                    age: age
-                )
-            }
-    }
-
-    private func append(notes: [PianoNote], at date: Date) {
-        noteHistory.removeAll { date.timeIntervalSince($0.timestamp) > scrollDuration }
-        noteHistory.append(
-            contentsOf: notes.map { note in
-                ScrollingNoteEvent(
-                    note: note,
-                    step: diatonicStep(for: note.midiNumber),
-                    timestamp: date
-                )
-            }
-        )
-    }
-
-    private func repeatingExampleNotes(at date: Date) -> [VisibleScrollingNote] {
-        let noteCount = Self.exampleNotes.count
-        guard noteCount > 0 else { return [] }
-
-        let phase = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: scrollDuration)
-        let spacing = scrollDuration / Double(noteCount)
-
-        return Self.exampleNotes.enumerated().map { index, note in
-            let age = phase - Double(index) * spacing
-            let wrappedAge = age >= 0 ? age : age + scrollDuration
-            return VisibleScrollingNote(
-                id: UUID(),
-                note: note,
-                step: diatonicStep(for: note.midiNumber),
-                age: wrappedAge
-            )
-        }
+        StaffCanvas(queue: queue)
     }
 }
 
 private struct StaffCanvas: View {
-    let currentNotes: [PianoNote]
-    let scrollingNotes: [VisibleScrollingNote]
+    @ObservedObject var queue: NoteQueue
 
     private let trebleLineSteps = [2, 4, 6, 8, 10]
     private let bassLineSteps = [-10, -8, -6, -4, -2]
@@ -209,10 +134,14 @@ private struct StaffCanvas: View {
             let bassClefCenterX = clefLeftX + bassClefWidth / 2
             let noteGlyphSize = lineGap * 3.2
             
-            //let noteStartX = clefLeftX + max(trebleClefWidth, bassClefWidth) + lineGap * 0.9
             let noteStartX = max(clefLeftX + trebleClefWidth, clefLeftX + bassClefWidth) + 10
             let noteEndX = width - margin
-            let notePointsPerSecond = noteGlyphSize * 1.6
+            let noteSpacing = lineGap * 2
+            let noteCount = queue.notes.count
+            let maxVisible = max(Int((noteEndX - noteStartX) / noteSpacing) + 2, 1)
+            // Anchor the newest note one half-spacing from the right edge so it is
+            // fully visible as soon as it enters, rather than being half-clipped.
+            let newestNoteX = noteEndX - noteSpacing * 0.5
 
             let staffStartX = barLineX
             let _ = Self.logBraceMetrics(
@@ -309,13 +238,14 @@ private struct StaffCanvas: View {
                 let noteHeadFont = UIFont(name: "Bravura", size: noteGlyphSize) ?? .systemFont(ofSize: noteGlyphSize)
                 let sharpFont = UIFont.systemFont(ofSize: lineGap * 1.2, weight: .semibold)
 
-                ForEach(scrollingNotes) { entry in
-                    let noteX = noteEndX - CGFloat(entry.age) * notePointsPerSecond
-                    let noteY = yFor(step: entry.step, top: topPad, stepSize: stepSize)
-                    let noteGlyph = noteGlyph(for: entry.step)
-                    let ledgers = ledgerSteps(for: entry.step)
+                ForEach(Array(queue.notes.enumerated()), id: \.element.id) { (index, entry) in
+                    let noteX = newestNoteX - CGFloat(noteCount - 1 - index) * noteSpacing
+                    let step = diatonicStep(for: entry.note.midiNumber)
+                    let noteY = yFor(step: step, top: topPad, stepSize: stepSize)
+                    let glyph = noteGlyph(for: step)
+                    let ledgers = ledgerSteps(for: step)
 
-                    let noteHeadHalfWidth = max(glyphMetrics(for: noteGlyph, font: noteHeadFont).bounds.width / 2, 1)
+                    let noteHeadHalfWidth = max(glyphMetrics(for: glyph, font: noteHeadFont).bounds.width / 2, 1)
                     let ledgerHalfWidth: CGFloat = ledgers.isEmpty ? noteHeadHalfWidth : max(noteHeadHalfWidth, 18)
                     let accidentalOffsetX: CGFloat = entry.note.isBlackKey ? lineGap * 1.1 : 0
                     let accidentalHalfWidth: CGFloat = entry.note.isBlackKey ? max(glyphMetrics(for: "♯", font: sharpFont).bounds.width / 2, 1) : 0
@@ -323,7 +253,7 @@ private struct StaffCanvas: View {
                     let leftEdge = noteX - ledgerHalfWidth - accidentalOffsetX - accidentalHalfWidth
                     let rightEdge = noteX + ledgerHalfWidth
 
-                    if leftEdge >= noteStartX && rightEdge <= noteEndX {
+                    if leftEdge >= noteStartX {
                         ForEach(ledgers, id: \.self) { ledgerStep in
                             Rectangle()
                                 .fill(Color.black.opacity(0.60))
@@ -331,7 +261,7 @@ private struct StaffCanvas: View {
                                 .position(x: noteX, y: yFor(step: ledgerStep, top: topPad, stepSize: stepSize))
                         }
 
-                        Text(noteGlyph)
+                        Text(glyph)
                             .font(.custom("Bravura", size: noteGlyphSize))
                             .foregroundStyle(Color(red: 0.13, green: 0.18, blue: 0.27))
                             .position(x: noteX, y: noteY)
@@ -345,16 +275,24 @@ private struct StaffCanvas: View {
                     }
                 }
 
-                if !currentNotes.isEmpty {
-                    Text(currentNotes.map(\.displayName).joined(separator: " · "))
+                if let last = queue.notes.last {
+                    Text(last.note.displayName)
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .position(x: width * 0.42, y: labelY)
                 } else {
-                    Text(scrollingNotes.isEmpty ? "Waiting for notes" : "Sliding note history")
+                    Text("Waiting for notes")
                         .font(.headline)
                         .foregroundStyle(.secondary)
                         .position(x: width * 0.44, y: labelY)
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: noteCount)
+            .onChange(of: noteCount) { _, newCount in
+                if newCount > maxVisible {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        queue.trim(keepingAtMost: maxVisible)
+                    }
                 }
             }
         }
@@ -381,20 +319,6 @@ private struct StaffCanvas: View {
             "StaffCanvas braceCenterY=\(braceCenterY), trebleTopY=\(trebleTopY), bassBottomY=\(bassBottomY), height=\(height), topPad=\(topPad), bottomPad=\(bottomPad), stepSize=\(stepSize)"
         )
     }
-}
-
-private struct ScrollingNoteEvent: Identifiable {
-    let id = UUID()
-    let note: PianoNote
-    let step: Int
-    let timestamp: Date
-}
-
-private struct VisibleScrollingNote: Identifiable {
-    let id: UUID
-    let note: PianoNote
-    let step: Int
-    let age: Double
 }
 
 private struct GlyphDebugBox: View {
@@ -460,15 +384,13 @@ private func glyphMetrics(for text: String, font: UIFont) -> (bounds: CGRect, li
     )
 }
 #Preview {
-    StaffNoteView(
-        notes: [
-            PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0),
-            PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0),
-            PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: 0),
-        ]
-    )
-    .frame(height: 320)
-    .padding()
-    .background(Color(.systemGroupedBackground))
+    let queue = NoteQueue()
+    queue.enqueue(PianoNote(midiNumber: 60, frequency: 261.63, centsOffset: 0))
+    queue.enqueue(PianoNote(midiNumber: 64, frequency: 329.63, centsOffset: 0))
+    queue.enqueue(PianoNote(midiNumber: 67, frequency: 392.00, centsOffset: 0))
+    return StaffNoteView(queue: queue)
+        .frame(height: 320)
+        .padding()
+        .background(Color(.systemGroupedBackground))
 }
 
