@@ -1,0 +1,385 @@
+{
+  "chordSamples" : 0,
+  "correctSingleNotePredictions" : 30,
+  "directory" : "\/Users\/darwin\/Projects\/unsorted-2026\/piano_reader\/Samples\/note_sample",
+  "evaluatedSingleNoteSamples" : 30,
+  "generatedAt" : "2026-03-30T06:47:05Z",
+  "meanAbsoluteCentsError" : 7.580592014932983,
+  "reports" : [
+    {
+      "centsError" : 12.227569518325312,
+      "confidence" : 0.9908600966870309,
+      "expected" : "single:A#4",
+      "fileName" : "A#4_1.wav",
+      "predicted" : "A#4",
+      "predictedFrequencyHz" : 469.4678940701493,
+      "predictedNotes" : [
+        "A#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 11.838642014988373,
+      "confidence" : 0.9926933922968197,
+      "expected" : "single:A#4",
+      "fileName" : "A#4_2.wav",
+      "predicted" : "A#4",
+      "predictedFrequencyHz" : 469.3624383878512,
+      "predictedNotes" : [
+        "A#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 8.710676906062421,
+      "confidence" : 0.9756156047921055,
+      "expected" : "single:A4",
+      "fileName" : "A4_1.wav",
+      "predicted" : "A4",
+      "predictedFrequencyHz" : 442.2194319201904,
+      "predictedNotes" : [
+        "A4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 7.389903033912893,
+      "confidence" : 0.9574664446059775,
+      "expected" : "single:A4",
+      "fileName" : "A4_2.wav",
+      "predicted" : "A4",
+      "predictedFrequencyHz" : 441.8821874375147,
+      "predictedNotes" : [
+        "A4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 3.8058276417241528,
+      "confidence" : 0.9705048377567684,
+      "expected" : "single:B4",
+      "fileName" : "B4_1.wav",
+      "predicted" : "B4",
+      "predictedFrequencyHz" : 494.97021510599035,
+      "predictedNotes" : [
+        "B3",
+        "B4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 5.217502511314375,
+      "confidence" : 0.9613283235160104,
+      "expected" : "single:B4",
+      "fileName" : "B4_2.wav",
+      "predicted" : "B4",
+      "predictedFrequencyHz" : 495.3739860300541,
+      "predictedNotes" : [
+        "B3",
+        "B4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 9.623930124070155,
+      "confidence" : 0.9801200285004859,
+      "expected" : "single:C#4",
+      "fileName" : "C#4_1.wav",
+      "predicted" : "C#4",
+      "predictedFrequencyHz" : 278.7277799923592,
+      "predictedNotes" : [
+        "C#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 10.399088328040666,
+      "confidence" : 0.9719533100304236,
+      "expected" : "single:C#4",
+      "fileName" : "C#4_2.wav",
+      "predicted" : "C#4",
+      "predictedFrequencyHz" : 278.8526080030895,
+      "predictedNotes" : [
+        "C#3",
+        "C#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : -1.442997845284155,
+      "confidence" : 0.9947064215476616,
+      "expected" : "single:C3",
+      "fileName" : "C3_1.wav",
+      "predicted" : "C3",
+      "predictedFrequencyHz" : 130.70379454561305,
+      "predictedNotes" : [
+        "C3",
+        "C4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.3225998582037795,
+      "confidence" : 0.9896201120323797,
+      "expected" : "single:C4",
+      "fileName" : "C4_1.wav",
+      "predicted" : "C4",
+      "predictedFrequencyHz" : 262.5827888439887,
+      "predictedNotes" : [
+        "C4",
+        "C5"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.331915109438531,
+      "confidence" : 0.9890900148672213,
+      "expected" : "single:C4",
+      "fileName" : "C4_2.wav",
+      "predicted" : "C4",
+      "predictedFrequencyHz" : 262.58420172703006,
+      "predictedNotes" : [
+        "C4",
+        "C5"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 5.524168265449682,
+      "confidence" : 0.9858664181688876,
+      "expected" : "single:C4",
+      "fileName" : "C4_3.wav",
+      "predicted" : "C4",
+      "predictedFrequencyHz" : 262.4617156382092,
+      "predictedNotes" : [
+        "C4",
+        "C5"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 11.946167437129052,
+      "confidence" : 0.9824662595956849,
+      "expected" : "single:C5",
+      "fileName" : "C5_1.wav",
+      "predicted" : "C5",
+      "predictedFrequencyHz" : 526.8742466715686,
+      "predictedNotes" : [
+        "C4",
+        "C5"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 3.3910474620840936,
+      "confidence" : 0.9906913630575642,
+      "expected" : "single:D#4",
+      "fileName" : "D#4_1.wav",
+      "predicted" : "D#4",
+      "predictedFrequencyHz" : 311.7369996398691,
+      "predictedNotes" : [
+        "D#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 3.0745376325679388,
+      "confidence" : 0.9870504024188398,
+      "expected" : "single:D#4",
+      "fileName" : "D#4_2.wav",
+      "predicted" : "D#4",
+      "predictedFrequencyHz" : 311.68001207898635,
+      "predictedNotes" : [
+        "D#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 4.021836415524399,
+      "confidence" : 0.9930384124723057,
+      "expected" : "single:D4",
+      "fileName" : "D4_1.wav",
+      "predicted" : "D4",
+      "predictedFrequencyHz" : 294.3477746992994,
+      "predictedNotes" : [
+        "D4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 3.8341881657300947,
+      "confidence" : 0.9941347495029116,
+      "expected" : "single:D4",
+      "fileName" : "D4_2.wav",
+      "predicted" : "D4",
+      "predictedFrequencyHz" : 294.31587210848784,
+      "predictedNotes" : [
+        "D4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 5.717717144365495,
+      "confidence" : 0.9883639483693805,
+      "expected" : "single:E4",
+      "fileName" : "E4_1.wav",
+      "predicted" : "E4",
+      "predictedFrequencyHz" : 330.71801194126095,
+      "predictedNotes" : [
+        "E4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.0406596241124255,
+      "confidence" : 0.9869957300898459,
+      "expected" : "single:E4",
+      "fileName" : "E4_2.wav",
+      "predicted" : "E4",
+      "predictedFrequencyHz" : 330.7797094667903,
+      "predictedNotes" : [
+        "E4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 8.637499006516004,
+      "confidence" : 0.9911700505311022,
+      "expected" : "single:F#4",
+      "fileName" : "F#4_1.wav",
+      "predicted" : "F#4",
+      "predictedFrequencyHz" : 371.84501712906376,
+      "predictedNotes" : [
+        "F#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 9.656620885058736,
+      "confidence" : 0.987035258074936,
+      "expected" : "single:F#4",
+      "fileName" : "F#4_2.wav",
+      "predicted" : "F#4",
+      "predictedFrequencyHz" : 372.06397478756827,
+      "predictedNotes" : [
+        "F#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.372271773212154,
+      "confidence" : 0.9795396244313856,
+      "expected" : "single:F3",
+      "fileName" : "F3_1.wav",
+      "predicted" : "F3",
+      "predictedFrequencyHz" : 175.25801414880397,
+      "predictedNotes" : [
+        "F3",
+        "F4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 4.333289965498678,
+      "confidence" : 0.9932640714711863,
+      "expected" : "single:F4",
+      "fileName" : "F4_1.wav",
+      "predicted" : "F4",
+      "predictedFrequencyHz" : 350.1034468215399,
+      "predictedNotes" : [
+        "F4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 7.3754252195443755,
+      "confidence" : 0.9904682255314561,
+      "expected" : "single:F4",
+      "fileName" : "F4_2.wav",
+      "predicted" : "F4",
+      "predictedFrequencyHz" : 350.7191916157747,
+      "predictedNotes" : [
+        "F3",
+        "F4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.049328728927583,
+      "confidence" : 0.9828130561670547,
+      "expected" : "single:F4",
+      "fileName" : "F4_3.wav",
+      "predicted" : "F4",
+      "predictedFrequencyHz" : 350.45064941012976,
+      "predictedNotes" : [
+        "F4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 8.480715198531959,
+      "confidence" : 0.9749237389755775,
+      "expected" : "single:F5",
+      "fileName" : "F5_1.wav",
+      "predicted" : "F5",
+      "predictedFrequencyHz" : 701.8863529085181,
+      "predictedNotes" : [
+        "F4",
+        "F5"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 4.552498034956433,
+      "confidence" : 0.9950694154574169,
+      "expected" : "single:G#4",
+      "fileName" : "G#4_1.wav",
+      "predicted" : "G#4",
+      "predictedFrequencyHz" : 416.3982307643081,
+      "predictedNotes" : [
+        "G#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 6.522126970132605,
+      "confidence" : 0.9899775318658339,
+      "expected" : "single:G#4",
+      "fileName" : "G#4_2.wav",
+      "predicted" : "G#4",
+      "predictedFrequencyHz" : 416.87223757150923,
+      "predictedNotes" : [
+        "G#4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 17.71360131688725,
+      "confidence" : 0.9230982873931547,
+      "expected" : "single:G4",
+      "fileName" : "G4_1.wav",
+      "predicted" : "G4",
+      "predictedFrequencyHz" : 396.0268350201619,
+      "predictedNotes" : [
+        "G4"
+      ],
+      "status" : "evaluated"
+    },
+    {
+      "centsError" : 20.863408310395727,
+      "confidence" : 0.9200305827735866,
+      "expected" : "single:G4",
+      "fileName" : "G4_2.wav",
+      "predicted" : "G4",
+      "predictedFrequencyHz" : 396.74802205481325,
+      "predictedNotes" : [
+        "G4"
+      ],
+      "status" : "evaluated"
+    }
+  ],
+  "singleNoteAccuracy" : 1,
+  "singleNoteSamples" : 30,
+  "totalSamples" : 30,
+  "unknownSamples" : 0
+}

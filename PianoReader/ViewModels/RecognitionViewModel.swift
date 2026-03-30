@@ -60,8 +60,8 @@ final class RecognitionViewModel: ObservableObject {
                 self.waveformEnvelope = envelope
             }
 
-            // Only analyse once we have enough data
-            guard self.sampleBuffer.count >= 8_192 else { return }
+            // Only analyse once we have enough data (16384 for HarmonicSalienceDetector)
+            guard self.sampleBuffer.count >= 16_384 else { return }
 
             let candidates = self.polyDetector.analyze(samples: self.sampleBuffer, sampleRate: sampleRate)
             let smoothed = self.polySmoother.push(candidates)

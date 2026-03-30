@@ -1,0 +1,23 @@
+{
+  "directory" : "\/Users\/darwin\/Projects\/unsorted-2026\/piano_reader\/Samples\/noise_sample",
+  "falsePositiveCount" : 0,
+  "falsePositiveRate" : 0,
+  "generatedAt" : "2026-03-30T06:47:07Z",
+  "reports" : [
+    {
+      "detectedNotes" : [
+
+      ],
+      "fileName" : "noise-1.m4a",
+      "hasFalsePositive" : false
+    },
+    {
+      "detectedNotes" : [
+
+      ],
+      "fileName" : "noise-2.m4a",
+      "hasFalsePositive" : false
+    }
+  ],
+  "totalNoiseSamples" : 2
+}

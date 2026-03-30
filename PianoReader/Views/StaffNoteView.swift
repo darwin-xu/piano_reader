@@ -251,7 +251,6 @@ private struct StaffCanvas: View {
                     let accidentalHalfWidth: CGFloat = entry.note.isBlackKey ? max(glyphMetrics(for: "♯", font: sharpFont).bounds.width / 2, 1) : 0
 
                     let leftEdge = noteX - ledgerHalfWidth - accidentalOffsetX - accidentalHalfWidth
-                    let rightEdge = noteX + ledgerHalfWidth
 
                     if leftEdge >= noteStartX {
                         ForEach(ledgers, id: \.self) { ledgerStep in

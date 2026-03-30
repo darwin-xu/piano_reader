@@ -1,0 +1,816 @@
+{
+  "directory" : "\/Users\/darwin\/Projects\/unsorted-2026\/piano_reader\/Samples\/note_sample_chord",
+  "fullyCorrectCount" : 40,
+  "generatedAt" : "2026-03-30T06:47:06Z",
+  "meanF1" : 0.9188679245283017,
+  "meanPrecision" : 0.9276729559748427,
+  "meanRecall" : 0.9339622641509434,
+  "reports" : [
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "C"
+      ],
+      "expectedLabel" : "C_A",
+      "expectedPitchClasses" : [
+        "A",
+        "C"
+      ],
+      "f1" : 1,
+      "fileName" : "C_A_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "C"
+      ],
+      "expectedLabel" : "C_A",
+      "expectedPitchClasses" : [
+        "A",
+        "C"
+      ],
+      "f1" : 1,
+      "fileName" : "C_A_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A#",
+        "C"
+      ],
+      "expectedLabel" : "C_A#",
+      "expectedPitchClasses" : [
+        "A#",
+        "C"
+      ],
+      "f1" : 1,
+      "fileName" : "C_A#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A#",
+        "C"
+      ],
+      "expectedLabel" : "C_A#",
+      "expectedPitchClasses" : [
+        "A#",
+        "C"
+      ],
+      "f1" : 1,
+      "fileName" : "C_A#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C"
+      ],
+      "expectedLabel" : "C_B",
+      "expectedPitchClasses" : [
+        "B",
+        "C"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "C_B_1.wav",
+      "precision" : 1,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "C"
+      ],
+      "expectedLabel" : "C_B",
+      "expectedPitchClasses" : [
+        "B",
+        "C"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "C_B_2.wav",
+      "precision" : 1,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "C#",
+        "F#"
+      ],
+      "expectedLabel" : "C_C#",
+      "expectedPitchClasses" : [
+        "C",
+        "C#"
+      ],
+      "f1" : 0.8,
+      "fileName" : "C_C#_1.wav",
+      "precision" : 0.6666666666666666,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "C#",
+        "F#",
+        "G#"
+      ],
+      "expectedLabel" : "C_C#",
+      "expectedPitchClasses" : [
+        "C",
+        "C#"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "C_C#_2.wav",
+      "precision" : 0.5,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "D"
+      ],
+      "expectedLabel" : "C_D",
+      "expectedPitchClasses" : [
+        "C",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "C_D_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "D"
+      ],
+      "expectedLabel" : "C_D",
+      "expectedPitchClasses" : [
+        "C",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "C_D_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "D#"
+      ],
+      "expectedLabel" : "C_D#",
+      "expectedPitchClasses" : [
+        "C",
+        "D#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_D#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "D#"
+      ],
+      "expectedLabel" : "C_D#",
+      "expectedPitchClasses" : [
+        "C",
+        "D#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_D#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "E"
+      ],
+      "expectedLabel" : "C_E",
+      "expectedPitchClasses" : [
+        "C",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "C_E_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "E"
+      ],
+      "expectedLabel" : "C_E",
+      "expectedPitchClasses" : [
+        "C",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "C_E_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "F"
+      ],
+      "expectedLabel" : "C_F",
+      "expectedPitchClasses" : [
+        "C",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "C_F_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "F"
+      ],
+      "expectedLabel" : "C_F",
+      "expectedPitchClasses" : [
+        "C",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "C_F_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "F#"
+      ],
+      "expectedLabel" : "C_F#",
+      "expectedPitchClasses" : [
+        "C",
+        "F#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_F#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "F#"
+      ],
+      "expectedLabel" : "C_F#",
+      "expectedPitchClasses" : [
+        "C",
+        "F#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_F#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "G"
+      ],
+      "expectedLabel" : "C_G",
+      "expectedPitchClasses" : [
+        "C",
+        "G"
+      ],
+      "f1" : 1,
+      "fileName" : "C_G_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "G"
+      ],
+      "expectedLabel" : "C_G",
+      "expectedPitchClasses" : [
+        "C",
+        "G"
+      ],
+      "f1" : 1,
+      "fileName" : "C_G_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "G#"
+      ],
+      "expectedLabel" : "C_G#",
+      "expectedPitchClasses" : [
+        "C",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_G#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "G#"
+      ],
+      "expectedLabel" : "C_G#",
+      "expectedPitchClasses" : [
+        "C",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "C_G#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "E",
+        "G"
+      ],
+      "expectedLabel" : "C_major_chord",
+      "expectedPitchClasses" : [
+        "C",
+        "E",
+        "G"
+      ],
+      "f1" : 1,
+      "fileName" : "C_major_chord_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D"
+      ],
+      "expectedLabel" : "D_A",
+      "expectedPitchClasses" : [
+        "A",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "D_A_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D"
+      ],
+      "expectedLabel" : "D_A",
+      "expectedPitchClasses" : [
+        "A",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "D_A_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "D"
+      ],
+      "expectedLabel" : "D_B",
+      "expectedPitchClasses" : [
+        "B",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "D_B_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "D"
+      ],
+      "expectedLabel" : "D_B",
+      "expectedPitchClasses" : [
+        "B",
+        "D"
+      ],
+      "f1" : 1,
+      "fileName" : "D_B_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "D#",
+        "G#"
+      ],
+      "expectedLabel" : "D_D#",
+      "expectedPitchClasses" : [
+        "D",
+        "D#"
+      ],
+      "f1" : 0.8,
+      "fileName" : "D_D#_1.wav",
+      "precision" : 0.6666666666666666,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "D#"
+      ],
+      "expectedLabel" : "D_D#",
+      "expectedPitchClasses" : [
+        "D",
+        "D#"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "D_D#_2.wav",
+      "precision" : 1,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "F"
+      ],
+      "expectedLabel" : "D_F",
+      "expectedPitchClasses" : [
+        "D",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "D_F_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "F"
+      ],
+      "expectedLabel" : "D_F",
+      "expectedPitchClasses" : [
+        "D",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "D_F_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "G#"
+      ],
+      "expectedLabel" : "D_G#",
+      "expectedPitchClasses" : [
+        "D",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "D_G#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "G#"
+      ],
+      "expectedLabel" : "D_G#",
+      "expectedPitchClasses" : [
+        "D",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "D_G#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D",
+        "F"
+      ],
+      "expectedLabel" : "D_minor_chord",
+      "expectedPitchClasses" : [
+        "A",
+        "D",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "D_minor_chord_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A#",
+        "E"
+      ],
+      "expectedLabel" : "E_A#",
+      "expectedPitchClasses" : [
+        "A#",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "E_A#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A#",
+        "E"
+      ],
+      "expectedLabel" : "E_A#",
+      "expectedPitchClasses" : [
+        "A#",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "E_A#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "E"
+      ],
+      "expectedLabel" : "E_B",
+      "expectedPitchClasses" : [
+        "B",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "E_B_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "E"
+      ],
+      "expectedLabel" : "E_B",
+      "expectedPitchClasses" : [
+        "B",
+        "E"
+      ],
+      "f1" : 1,
+      "fileName" : "E_B_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C",
+        "F"
+      ],
+      "expectedLabel" : "E_F",
+      "expectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "f1" : 0.5,
+      "fileName" : "E_F_1.wav",
+      "precision" : 0.5,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "expectedLabel" : "E_F",
+      "expectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "f1" : 1,
+      "fileName" : "E_F_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "C#",
+        "E"
+      ],
+      "expectedLabel" : "E_F",
+      "expectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "f1" : 0.5,
+      "fileName" : "E_F_3.wav",
+      "precision" : 0.5,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "D",
+        "E"
+      ],
+      "expectedLabel" : "E_F",
+      "expectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "f1" : 0.5,
+      "fileName" : "E_F_4.wav",
+      "precision" : 0.5,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "E"
+      ],
+      "expectedLabel" : "E_F",
+      "expectedPitchClasses" : [
+        "E",
+        "F"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "E_F_5.wav",
+      "precision" : 1,
+      "recall" : 0.5
+    },
+    {
+      "detectedPitchClasses" : [
+        "E",
+        "F#"
+      ],
+      "expectedLabel" : "E_F#",
+      "expectedPitchClasses" : [
+        "E",
+        "F#"
+      ],
+      "f1" : 1,
+      "fileName" : "E_F#_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "E",
+        "F#"
+      ],
+      "expectedLabel" : "E_F#",
+      "expectedPitchClasses" : [
+        "E",
+        "F#"
+      ],
+      "f1" : 1,
+      "fileName" : "E_F#_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "E",
+        "G"
+      ],
+      "expectedLabel" : "E_minor_chord",
+      "expectedPitchClasses" : [
+        "B",
+        "E",
+        "G"
+      ],
+      "f1" : 1,
+      "fileName" : "E_minor_chord_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "expectedLabel" : "G#_A",
+      "expectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "G#_A_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D",
+        "G#"
+      ],
+      "expectedLabel" : "G#_A",
+      "expectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "f1" : 0.8,
+      "fileName" : "G#_A_2.wav",
+      "precision" : 0.6666666666666666,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D",
+        "F#",
+        "G#"
+      ],
+      "expectedLabel" : "G#_A",
+      "expectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "f1" : 0.6666666666666666,
+      "fileName" : "G#_A_3.wav",
+      "precision" : 0.5,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "expectedLabel" : "G#_A",
+      "expectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "G#_A_4.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "A",
+        "D",
+        "G#"
+      ],
+      "expectedLabel" : "G#_A",
+      "expectedPitchClasses" : [
+        "A",
+        "G#"
+      ],
+      "f1" : 0.8,
+      "fileName" : "G#_A_5.wav",
+      "precision" : 0.6666666666666666,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "G#"
+      ],
+      "expectedLabel" : "G#_B",
+      "expectedPitchClasses" : [
+        "B",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "G#_B_1.wav",
+      "precision" : 1,
+      "recall" : 1
+    },
+    {
+      "detectedPitchClasses" : [
+        "B",
+        "G#"
+      ],
+      "expectedLabel" : "G#_B",
+      "expectedPitchClasses" : [
+        "B",
+        "G#"
+      ],
+      "f1" : 1,
+      "fileName" : "G#_B_2.wav",
+      "precision" : 1,
+      "recall" : 1
+    }
+  ],
+  "totalChordSamples" : 53
+}

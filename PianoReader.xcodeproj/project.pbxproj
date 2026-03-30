@@ -20,6 +20,12 @@
 		A100000E0000000000000001 /* PolyphonicSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001F0000000000000001 /* PolyphonicSmoother.swift */; };
 		D65A358B2F712DC60077F962 /* WaveformEnvelopeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A358A2F712DC60077F962 /* WaveformEnvelopeView.swift */; };
 		D65A35912F712DC60077F962 /* Bravura.otf in Resources */ = {isa = PBXBuildFile; fileRef = D65A35902F712DC60077F962 /* Bravura.otf */; };
+		D65A35A12F712DC60077F962 /* HarmonicSalienceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35A02F712DC60077F962 /* HarmonicSalienceDetector.swift */; };
+		D65A35A32F712DC60077F962 /* PitchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35A22F712DC60077F962 /* PitchModels.swift */; };
+		D65A35A52F712DC60077F962 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35A42F712DC60077F962 /* Note.swift */; };
+		D65A35A72F712DC60077F962 /* AudioFileLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35A62F712DC60077F962 /* AudioFileLoader.swift */; };
+		D65A35A92F712DC60077F962 /* SampleCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35A82F712DC60077F962 /* SampleCatalog.swift */; };
+		D65A35AB2F712DC60077F962 /* YINPitchDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65A35AA2F712DC60077F962 /* YINPitchDetector.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +44,12 @@
 		A100001F0000000000000001 /* PolyphonicSmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyphonicSmoother.swift; sourceTree = "<group>"; };
 		D65A358A2F712DC60077F962 /* WaveformEnvelopeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformEnvelopeView.swift; sourceTree = "<group>"; };
 		D65A35902F712DC60077F962 /* Bravura.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Bravura.otf; sourceTree = "<group>"; };
+		D65A35A02F712DC60077F962 /* HarmonicSalienceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarmonicSalienceDetector.swift; sourceTree = "<group>"; };
+		D65A35A22F712DC60077F962 /* PitchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchModels.swift; sourceTree = "<group>"; };
+		D65A35A42F712DC60077F962 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		D65A35A62F712DC60077F962 /* AudioFileLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileLoader.swift; sourceTree = "<group>"; };
+		D65A35A82F712DC60077F962 /* SampleCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCatalog.swift; sourceTree = "<group>"; };
+		D65A35AA2F712DC60077F962 /* YINPitchDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YINPitchDetector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,8 +107,14 @@
 		A10000340000000000000001 /* DSP */ = {
 			isa = PBXGroup;
 			children = (
+				D65A35A62F712DC60077F962 /* AudioFileLoader.swift */,
+				D65A35A02F712DC60077F962 /* HarmonicSalienceDetector.swift */,
+				D65A35A42F712DC60077F962 /* Note.swift */,
+				D65A35A22F712DC60077F962 /* PitchModels.swift */,
 				A100001E0000000000000001 /* PolyphonicDetector.swift */,
 				A100001F0000000000000001 /* PolyphonicSmoother.swift */,
+				D65A35A82F712DC60077F962 /* SampleCatalog.swift */,
+				D65A35AA2F712DC60077F962 /* YINPitchDetector.swift */,
 			);
 			path = DSP;
 			sourceTree = "<group>";
@@ -217,6 +235,12 @@
 				A100000B0000000000000001 /* StaffNoteView.swift in Sources */,
 				A100000D0000000000000001 /* PolyphonicDetector.swift in Sources */,
 				A100000E0000000000000001 /* PolyphonicSmoother.swift in Sources */,
+				D65A35A12F712DC60077F962 /* HarmonicSalienceDetector.swift in Sources */,
+				D65A35A32F712DC60077F962 /* PitchModels.swift in Sources */,
+				D65A35A52F712DC60077F962 /* Note.swift in Sources */,
+				D65A35A72F712DC60077F962 /* AudioFileLoader.swift in Sources */,
+				D65A35A92F712DC60077F962 /* SampleCatalog.swift in Sources */,
+				D65A35AB2F712DC60077F962 /* YINPitchDetector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
