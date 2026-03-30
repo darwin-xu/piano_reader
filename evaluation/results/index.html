@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PianoReader — Evaluation Results</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
+header{background:#1d1d1f;color:#f5f5f7;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.2rem;font-weight:600;letter-spacing:-.01em}
+header span{font-size:.8rem;opacity:.6}
+#main{max-width:1100px;margin:0 auto;padding:1.5rem}
+
+/* File fallback */
+#file-fallback{background:#fff;border:2px dashed #d2d2d7;border-radius:12px;padding:2.5rem;text-align:center;margin-bottom:1.5rem}
+#file-fallback p{color:#666;font-size:.9rem;margin-bottom:1rem}
+#file-fallback label{display:inline-block;background:#0071e3;color:#fff;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.9rem}
+#file-fallback label:hover{background:#0077ed}
+#file-fallback input{display:none}
+
+/* Run selector */
+#run-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap}
+#run-bar label{font-size:.85rem;color:#666}
+#run-select{padding:.4rem .75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:.85rem;background:#fff;cursor:pointer}
+#run-ts{font-size:.8rem;color:#888}
+
+/* Cards */
+#cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:.4rem}
+.card-value{font-size:2rem;font-weight:700;line-height:1}
+.card-sub{font-size:.8rem;color:#888;margin-top:.3rem}
+.good{color:#30d158}.warn{color:#ff9f0a}.bad{color:#ff3b30}
+
+/* Sections */
+.section{background:#fff;border-radius:12px;margin-bottom:1rem;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;cursor:pointer;user-select:none;border-bottom:1px solid #f2f2f2}
+.section-header h2{font-size:.95rem;font-weight:600}
+.section-header .badge{font-size:.75rem;padding:.2rem .55rem;border-radius:20px;font-weight:600}
+.badge-green{background:#d1f5dc;color:#1a7f4b}
+.badge-red{background:#ffe5e5;color:#c0392b}
+.badge-orange{background:#fff3cd;color:#856404}
+.chevron{font-size:.8rem;color:#999;transition:transform .2s}
+.section-body{display:none;padding:1rem 1.25rem}
+.section-body.open{display:block}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:#f9f9f9;padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap}
+td{padding:.45rem .75rem;border-bottom:1px solid #f2f2f2;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.pass{color:#30d158;font-weight:700}.fail{color:#ff3b30;font-weight:700}
+.pct{font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.75rem;font-weight:600}
+.pill-green{background:#d1f5dc;color:#1a7f4b}
+.pill-red{background:#ffe5e5;color:#c0392b}
+
+/* SNR chart */
+#snr-chart-wrap{margin-top:1rem}
+#snr-chart-wrap h3{font-size:.85rem;font-weight:600;color:#555;margin-bottom:.6rem}
+svg.snr-chart{width:100%;overflow:visible}
+
+/* Empty state */
+.empty{color:#bbb;font-size:.9rem;padding:1.5rem 0;text-align:center}
+
+/* Responsive table wrapper */
+.tscroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎹 PianoReader — Evaluation Results</h1>
+  <span id="header-sub"></span>
+</header>
+<div id="main">
+  <div id="file-fallback">
+    <p>Auto-load failed (likely running from <code>file://</code>). Pick <strong>results.json</strong> manually, or serve this folder with <code>python3 -m http.server 8000</code>.</p>
+    <label>Browse results.json <input type="file" id="file-input" accept=".json"></label>
+  </div>
+
+  <div id="app" style="display:none">
+    <div id="run-bar">
+      <label for="run-select">Run:</label>
+      <select id="run-select"></select>
+      <span id="run-ts"></span>
+    </div>
+
+    <div id="cards"></div>
+
+    <div class="section" id="sec-single">
+      <div class="section-header" onclick="toggle('sec-single')">
+        <h2>🎵 Single-Note Evaluation</h2>
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <span class="badge" id="badge-single"></span>
+          <span class="chevron" id="chev-sec-single">▼</span>
+        </span>
+      </div>
+      <div class="section-body" id="body-sec-single">
+        <div class="tscroll"><table id="tbl-single"><thead><tr><th>File</th><th>Expected</th><th>Detected</th><th>Predicted</th><th>Cents Err</th><th>Confidence</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-chord">
+      <div class="section-header" onclick="toggle('sec-chord')">
+        <h2>🎼 Chord Evaluation</h2>
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <span class="badge" id="badge-chord"></span>
+          <span class="chevron" id="chev-sec-chord">▼</span>
+        </span>
+      </div>
+      <div class="section-body" id="body-sec-chord">
+        <div class="tscroll"><table id="tbl-chord"><thead><tr><th>File</th><th>Expected</th><th>Detected</th><th>Precision</th><th>Recall</th><th>F1</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-noise">
+      <div class="section-header" onclick="toggle('sec-noise')">
+        <h2>🔇 Pure Noise Evaluation</h2>
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <span class="badge" id="badge-noise"></span>
+          <span class="chevron" id="chev-sec-noise">▼</span>
+        </span>
+      </div>
+      <div class="section-body" id="body-sec-noise">
+        <div class="tscroll"><table id="tbl-noise"><thead><tr><th>File</th><th>Detected Notes</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-noisemix">
+      <div class="section-header" onclick="toggle('sec-noisemix')">
+        <h2>📊 Noise-Mix SNR Table</h2>
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <span class="badge" id="badge-noisemix"></span>
+          <span class="chevron" id="chev-sec-noisemix">▼</span>
+        </span>
+      </div>
+      <div class="section-body" id="body-sec-noisemix">
+        <div class="tscroll"><table id="tbl-noisemix"><thead><tr><th>SNR (dB)</th><th>Single-Note Acc.</th><th>Chord Recall</th><th>Total Tests</th></tr></thead><tbody></tbody></table></div>
+        <div id="snr-chart-wrap">
+          <h3>SNR vs. Accuracy / Recall</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Utilities ────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const pct = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
+const fmt = (v, decimals=2) => v == null ? '—' : v.toFixed(decimals);
+
+function toggle(id) {
+  const body = $('body-' + id);
+  const chev = $('chev-' + id);
+  const open = body.classList.toggle('open');
+  chev.textContent = open ? '▲' : '▼';
+}
+
+function openSection(id) {
+  const body = $('body-' + id);
+  const chev = $('chev-' + id);
+  body.classList.add('open');
+  chev.textContent = '▲';
+}
+
+function badge(el, text, cls) {
+  el.textContent = text;
+  el.className = 'badge ' + cls;
+}
+
+function colorPct(v) {
+  if (v == null) return '';
+  if (v >= 0.95) return 'good';
+  if (v >= 0.80) return 'warn';
+  return 'bad';
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderRun(run) {
+  // ── Summary cards ──
+  const cards = $('cards');
+  cards.innerHTML = '';
+  const addCard = (label, value, cls, sub) => {
+    cards.innerHTML += `<div class="card"><div class="card-label">${label}</div><div class="card-value ${cls||''}">${value}</div>${sub?`<div class="card-sub">${sub}</div>`:''}</div>`;
+  };
+
+  const sn = run.singleNote;
+  if (sn) addCard('Single-Note Accuracy', pct(sn.singleNoteAccuracy), colorPct(sn.singleNoteAccuracy),
+    `${sn.correctSingleNotePredictions}/${sn.singleNoteSamples} · MAE ${fmt(sn.meanAbsoluteCentsError)} ¢`);
+
+  const ch = run.chord;
+  if (ch) addCard('Chord Recall', pct(ch.meanRecall), colorPct(ch.meanRecall),
+    `Precision ${pct(ch.meanPrecision)} · F1 ${pct(ch.meanF1)}`);
+
+  const ns = run.noise;
+  if (ns) addCard('Noise FP Rate', pct(ns.falsePositiveRate), ns.falsePositiveRate === 0 ? 'good' : 'bad',
+    `${ns.falsePositiveCount} false positives / ${ns.totalNoiseSamples} files`);
+
+  const nm = run.noiseMix;
+  if (nm && nm.buckets && nm.buckets.length) {
+    const best = nm.buckets[nm.buckets.length - 1];
+    addCard('Noise-Mix (best SNR)', pct(best.singleNoteAccuracy), colorPct(best.singleNoteAccuracy),
+      `SNR +${best.snrDb} dB · Chord recall ${pct(best.chordMeanRecall)}`);
+  }
+
+  // ── Single-note table ──
+  renderSingleNote(sn);
+
+  // ── Chord table ──
+  renderChord(ch);
+
+  // ── Noise table ──
+  renderNoise(ns);
+
+  // ── Noise-mix ──
+  renderNoiseMix(nm);
+}
+
+function renderSingleNote(sn) {
+  const tbody = document.querySelector('#tbl-single tbody');
+  tbody.innerHTML = '';
+  if (!sn) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No single-note data in this run.</td></tr>';
+    badge($('badge-single'), '—', '');
+    return;
+  }
+  const evaluated = sn.reports.filter(r => r.status === 'evaluated');
+  const correct = evaluated.filter(r => r.predicted && r.expected.endsWith(':' + r.predicted)).length;
+  const cls = sn.singleNoteAccuracy >= 0.95 ? 'badge-green' : sn.singleNoteAccuracy >= 0.8 ? 'badge-orange' : 'badge-red';
+  badge($('badge-single'), `${correct}/${evaluated.length} · ${pct(sn.singleNoteAccuracy)}`, cls);
+
+  for (const r of sn.reports) {
+    if (r.status !== 'evaluated') continue;
+    const expectedNote = r.expected.replace('single:', '');
+    const pass = r.predicted === expectedNote;
+    const detectedStr = (r.predictedNotes || []).join(', ') || '—';
+    const centsStr = r.centsError != null ? (Math.abs(r.centsError) < 1 ? '< 1' : fmt(r.centsError, 1)) + ' ¢' : '—';
+    const confStr = r.confidence != null ? pct(r.confidence) : '—';
+    tbody.innerHTML += `<tr>
+      <td>${r.fileName}</td>
+      <td>${expectedNote}</td>
+      <td style="color:#666;font-size:.78rem">${detectedStr}</td>
+      <td>${r.predicted || '—'}</td>
+      <td class="pct">${centsStr}</td>
+      <td class="pct">${confStr}</td>
+      <td>${pass ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</td>
+    </tr>`;
+  }
+  if (!evaluated.length) tbody.innerHTML = '<tr><td colspan="7" class="empty">No evaluated samples.</td></tr>';
+  openSection('sec-single');
+}
+
+function renderChord(ch) {
+  const tbody = document.querySelector('#tbl-chord tbody');
+  tbody.innerHTML = '';
+  if (!ch) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No chord data in this run.</td></tr>';
+    badge($('badge-chord'), '—', '');
+    return;
+  }
+  const cls = ch.meanRecall >= 0.95 ? 'badge-green' : ch.meanRecall >= 0.8 ? 'badge-orange' : 'badge-red';
+  badge($('badge-chord'), `${ch.fullyCorrectCount}/${ch.totalChordSamples} · Recall ${pct(ch.meanRecall)}`, cls);
+
+  for (const r of ch.reports) {
+    const pass = r.precision >= 1.0 && r.recall >= 1.0;
+    tbody.innerHTML += `<tr>
+      <td>${r.fileName}</td>
+      <td>${(r.expectedPitchClasses || []).join(', ')}</td>
+      <td style="color:#666;font-size:.78rem">${(r.detectedPitchClasses || []).join(', ') || '—'}</td>
+      <td class="pct ${colorPct(r.precision)}">${pct(r.precision)}</td>
+      <td class="pct ${colorPct(r.recall)}">${pct(r.recall)}</td>
+      <td class="pct ${colorPct(r.f1)}">${pct(r.f1)}</td>
+      <td>${pass ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</td>
+    </tr>`;
+  }
+  if (!ch.reports.length) tbody.innerHTML = '<tr><td colspan="7" class="empty">No chord samples.</td></tr>';
+  openSection('sec-chord');
+}
+
+function renderNoise(ns) {
+  const tbody = document.querySelector('#tbl-noise tbody');
+  tbody.innerHTML = '';
+  if (!ns) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty">No noise data in this run.</td></tr>';
+    badge($('badge-noise'), '—', '');
+    return;
+  }
+  const cls = ns.falsePositiveRate === 0 ? 'badge-green' : 'badge-red';
+  badge($('badge-noise'), `FP rate ${pct(ns.falsePositiveRate)}`, cls);
+
+  for (const r of ns.reports) {
+    const pass = !r.hasFalsePositive;
+    const notesStr = r.detectedNotes && r.detectedNotes.length ? r.detectedNotes.join(', ') : 'none';
+    tbody.innerHTML += `<tr>
+      <td>${r.fileName}</td>
+      <td style="color:#666;font-size:.78rem">${notesStr}</td>
+      <td>${pass ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</td>
+    </tr>`;
+  }
+  if (!ns.reports.length) tbody.innerHTML = '<tr><td colspan="3" class="empty">No noise samples.</td></tr>';
+  openSection('sec-noise');
+}
+
+function renderNoiseMix(nm) {
+  const tbody = document.querySelector('#tbl-noisemix tbody');
+  tbody.innerHTML = '';
+  const chartWrap = $('snr-chart-wrap');
+  // remove old svg
+  const oldSvg = chartWrap.querySelector('svg');
+  if (oldSvg) oldSvg.remove();
+
+  if (!nm || !nm.buckets || !nm.buckets.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No noise-mix data in this run.</td></tr>';
+    badge($('badge-noisemix'), '—', '');
+    return;
+  }
+
+  const buckets = [...nm.buckets].sort((a, b) => a.snrDb - b.snrDb);
+  const avgSingle = buckets.filter(b => b.singleNoteAccuracy != null).reduce((s,b)=>s+b.singleNoteAccuracy,0)
+    / (buckets.filter(b => b.singleNoteAccuracy != null).length || 1);
+  const cls = avgSingle >= 0.95 ? 'badge-green' : avgSingle >= 0.8 ? 'badge-orange' : 'badge-red';
+  badge($('badge-noisemix'), `Avg single-note ${pct(avgSingle)} across ${buckets.length} SNR levels`, cls);
+
+  for (const b of buckets) {
+    tbody.innerHTML += `<tr>
+      <td class="pct">${b.snrDb >= 0 ? '+' : ''}${b.snrDb}</td>
+      <td class="pct ${colorPct(b.singleNoteAccuracy)}">${pct(b.singleNoteAccuracy)}</td>
+      <td class="pct ${colorPct(b.chordMeanRecall)}">${pct(b.chordMeanRecall)}</td>
+      <td>${b.totalTests}</td>
+    </tr>`;
+  }
+
+  // SVG line chart
+  drawSNRChart(chartWrap, buckets);
+  openSection('sec-noisemix');
+}
+
+function drawSNRChart(wrap, buckets) {
+  const W = 600, H = 200, PAD = {top:10, right:30, bottom:40, left:50};
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+
+  const snrs = buckets.map(b => b.snrDb);
+  const minSNR = Math.min(...snrs), maxSNR = Math.max(...snrs);
+  const xScale = v => PAD.left + (maxSNR === minSNR ? innerW/2 : (v - minSNR) / (maxSNR - minSNR) * innerW);
+  const yScale = v => PAD.top + innerH - v * innerH;
+
+  const ns = v => v == null ? null : (typeof v === 'number' ? v : null);
+
+  function polyline(points, color) {
+    const pts = points.filter(p => p[1] != null);
+    if (pts.length < 2) return '';
+    return `<polyline points="${pts.map(p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  function dots(points, color) {
+    return points.filter(p=>p[1]!=null).map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${color}" stroke="#fff" stroke-width="1.5"/>`).join('');
+  }
+
+  const singlePts = buckets.map(b => [xScale(b.snrDb), ns(b.singleNoteAccuracy) != null ? yScale(b.singleNoteAccuracy) : null]);
+  const chordPts  = buckets.map(b => [xScale(b.snrDb), ns(b.chordMeanRecall) != null ? yScale(b.chordMeanRecall) : null]);
+
+  // Grid lines + y-axis labels
+  let grid = '', yLabels = '';
+  for (let v = 0; v <= 1; v += 0.25) {
+    const y = yScale(v).toFixed(1);
+    grid += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+    yLabels += `<text x="${PAD.left-6}" y="${parseFloat(y)+4}" text-anchor="end" font-size="10" fill="#999">${(v*100).toFixed(0)}%</text>`;
+  }
+  // x-axis labels
+  let xLabels = '';
+  for (const b of buckets) {
+    const x = xScale(b.snrDb).toFixed(1);
+    const label = (b.snrDb >= 0 ? '+' : '') + b.snrDb;
+    xLabels += `<text x="${x}" y="${H-PAD.bottom+14}" text-anchor="middle" font-size="10" fill="#999">${label} dB</text>`;
+  }
+
+  // Axes
+  const axes = `
+    <line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${H-PAD.bottom}" stroke="#ccc" stroke-width="1"/>
+    <line x1="${PAD.left}" y1="${H-PAD.bottom}" x2="${W-PAD.right}" y2="${H-PAD.bottom}" stroke="#ccc" stroke-width="1"/>`;
+
+  // Legend
+  const legend = `
+    <rect x="${PAD.left}" y="${PAD.top}" width="12" height="3" fill="#30d158" rx="1"/>
+    <text x="${PAD.left+16}" y="${PAD.top+4}" font-size="10" fill="#555">Single-note Accuracy</text>
+    <rect x="${PAD.left+140}" y="${PAD.top}" width="12" height="3" fill="#0071e3" rx="1"/>
+    <text x="${PAD.left+156}" y="${PAD.top+4}" font-size="10" fill="#555">Chord Recall</text>`;
+
+  const svg = `<svg class="snr-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${grid}${axes}${yLabels}${xLabels}
+    ${polyline(singlePts,'#30d158')}${polyline(chordPts,'#0071e3')}
+    ${dots(singlePts,'#30d158')}${dots(chordPts,'#0071e3')}
+    ${legend}
+  </svg>`;
+  wrap.insertAdjacentHTML('beforeend', svg);
+}
+
+// ─── Run selector ─────────────────────────────────────────────────────────────
+let allRuns = [];
+
+function loadRuns(runs) {
+  allRuns = runs;
+  const sel = $('run-select');
+  sel.innerHTML = '';
+  runs.forEach((r, i) => {
+    const d = new Date(r.runAt);
+    const label = d.toLocaleString() + (i === runs.length - 1 ? ' (latest)' : '');
+    sel.insertAdjacentHTML('beforeend', `<option value="${i}">${label}</option>`);
+  });
+  // default to latest
+  sel.value = runs.length - 1;
+  sel.addEventListener('change', () => selectRun(parseInt(sel.value)));
+  selectRun(runs.length - 1);
+  $('app').style.display = 'block';
+}
+
+function selectRun(idx) {
+  const run = allRuns[idx];
+  $('run-ts').textContent = new Date(run.runAt).toUTCString();
+  $('header-sub').textContent = `${allRuns.length} run${allRuns.length!==1?'s':''} recorded`;
+  renderRun(run);
+}
+
+// ─── Data loading ─────────────────────────────────────────────────────────────
+function processData(json) {
+  $('file-fallback').style.display = 'none';
+  if (!Array.isArray(json) || json.length === 0) {
+    $('file-fallback').style.display = 'block';
+    $('file-fallback').querySelector('p').textContent = 'results.json is empty or has an unexpected format.';
+    return;
+  }
+  loadRuns(json);
+}
+
+// Try fetch first (works with local server or Safari)
+fetch('./results.json')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(processData)
+  .catch(() => {
+    // Show file-fallback (already visible by default)
+  });
+
+// File picker fallback
+$('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { processData(JSON.parse(ev.target.result)); }
+    catch { alert('Could not parse JSON file.'); }
+  };
+  reader.readAsText(file);
+});
+</script>
+</body>
+</html>

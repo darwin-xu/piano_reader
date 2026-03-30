@@ -388,13 +388,28 @@ func evaluateNoiseMix(
 
 // MARK: - Output and printing
 
-func emit<T: Encodable>(_ result: T, as fileName: String, workingDirectory: URL) throws {
+struct CombinedEvaluationRun: Codable {
+    let runAt: String
+    let singleNote: EvaluationSummary?
+    let chord: ChordEvaluationSummary?
+    let noise: NoiseEvaluationSummary?
+    let noiseMix: NoiseMixEvaluationSummary?
+}
+
+func appendRun(_ run: CombinedEvaluationRun, workingDirectory: URL) throws {
     let outputDirectory = workingDirectory.appendingPathComponent("evaluation/results")
     try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
-    let outputURL = outputDirectory.appendingPathComponent(fileName)
+    let outputURL = outputDirectory.appendingPathComponent("results.json")
+    let decoder = JSONDecoder()
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-    let data = try encoder.encode(result)
+    var runs: [CombinedEvaluationRun] = []
+    if let existingData = try? Data(contentsOf: outputURL),
+       let existing = try? decoder.decode([CombinedEvaluationRun].self, from: existingData) {
+        runs = existing
+    }
+    runs.append(run)
+    let data = try encoder.encode(runs)
     try data.write(to: outputURL)
 }
 
@@ -485,44 +500,54 @@ struct PitchDetectCLI {
         let snrLevels: [Double] = [-10, -5, 0, 5, 10]
 
         // 1. Single-note
+        var singleSummary: EvaluationSummary? = nil
         if FileManager.default.fileExists(atPath: singleNoteDir.path) {
-            let singleSummary = try evaluateSingleNote(
+            singleSummary = try evaluateSingleNote(
                 directory: singleNoteDir,
                 multiDetector: multiDetector,
                 yinDetector: yinDetector
             )
-            try emit(singleSummary, as: "latest-results.json", workingDirectory: workingDirectory)
-            try emit(singleSummary, as: "single-note-results.json", workingDirectory: workingDirectory)
-            printSingleNoteSummary(singleSummary)
+            printSingleNoteSummary(singleSummary!)
         }
 
         // 2. Chord
+        var chordSummary: ChordEvaluationSummary? = nil
         if FileManager.default.fileExists(atPath: chordDir.path) {
-            let chordSummary = try evaluateChord(directory: chordDir, multiDetector: multiDetector)
-            try emit(chordSummary, as: "chord-results.json", workingDirectory: workingDirectory)
-            printChordSummary(chordSummary)
+            chordSummary = try evaluateChord(directory: chordDir, multiDetector: multiDetector)
+            printChordSummary(chordSummary!)
         }
 
         // 3. Pure noise
+        var noiseSummary: NoiseEvaluationSummary? = nil
         if FileManager.default.fileExists(atPath: noiseDir.path) {
-            let noiseSummary = try evaluateNoise(directory: noiseDir, multiDetector: multiDetector)
-            try emit(noiseSummary, as: "noise-results.json", workingDirectory: workingDirectory)
-            printNoiseSummary(noiseSummary)
+            noiseSummary = try evaluateNoise(directory: noiseDir, multiDetector: multiDetector)
+            printNoiseSummary(noiseSummary!)
         }
 
         // 4. Noise-mix
+        var noiseMixSummary: NoiseMixEvaluationSummary? = nil
         let hasSingleOrChord = FileManager.default.fileExists(atPath: singleNoteDir.path)
             || FileManager.default.fileExists(atPath: chordDir.path)
         if FileManager.default.fileExists(atPath: noiseDir.path) && hasSingleOrChord {
-            let noiseMixSummary = try evaluateNoiseMix(
+            noiseMixSummary = try evaluateNoiseMix(
                 singleNoteDir: singleNoteDir,
                 chordDir: chordDir,
                 noiseDir: noiseDir,
                 multiDetector: multiDetector,
                 snrLevels: snrLevels
             )
-            try emit(noiseMixSummary, as: "noise-mix-results.json", workingDirectory: workingDirectory)
-            printNoiseMixSummary(noiseMixSummary)
+            printNoiseMixSummary(noiseMixSummary!)
         }
+
+        // Append combined run to results.json
+        let run = CombinedEvaluationRun(
+            runAt: ISO8601DateFormatter().string(from: Date()),
+            singleNote: singleSummary,
+            chord: chordSummary,
+            noise: noiseSummary,
+            noiseMix: noiseMixSummary
+        )
+        try appendRun(run, workingDirectory: workingDirectory)
+        print("Results appended → evaluation/results/results.json")
     }
 }

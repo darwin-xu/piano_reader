@@ -36,3 +36,7 @@ fastlane/test_output/
 
 # macOS
 .DS_Store
+
+# Evaluation result files (generated; use results.json via append strategy)
+evaluation/results/*.json
+!evaluation/results/results.json
